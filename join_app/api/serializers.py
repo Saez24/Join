@@ -29,6 +29,7 @@ class NamesHyperlinkedSerializer(NamesSerializer, serializers.HyperlinkedModelSe
 
 
 class SubtasksSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Subtasks
         fields = '__all__'
