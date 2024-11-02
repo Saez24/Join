@@ -41,17 +41,44 @@ class Priority(models.Model):
         return self.name
 
 
+STATUS_CHOICES = [
+    ('todo', 'To Do'),
+    ('in_progress', 'In Progress'),
+    ('done', 'Done'),
+    # Weitere Statuswerte hier hinzufügen
+]
+
+PRIORITY_CHOICES = [
+    ('low', 'Low'),
+    ('medium', 'Medium'),
+    ('urgent', 'Urgent'),
+    # Weitere Prioritätswerte hier hinzufügen
+]
+
+CATEGORY_CHOICES = [
+    ('it', 'IT'),
+    ('finance', 'Finance'),
+    ('sales', 'Sales'),
+    ('hr', 'HR'),
+    ('marketing', 'Marketing'),
+    ('operations', 'Operations')
+]
+
+
 class Tasks(models.Model):
     assigned_to = models.ManyToManyField(Names, related_name='tasks')
-    category = models.ManyToManyField(Category, related_name='tasks')
+    category = models.CharField(
+        max_length=20, choices=CATEGORY_CHOICES, default='')
     description = models.TextField()
     due_date = models.DateField()
-    priority = models.ManyToManyField(Priority, related_name='tasks')
-    status = models.ManyToManyField(TaskStatus, related_name='tasks')
+    priority = models.CharField(
+        max_length=20, choices=PRIORITY_CHOICES, default='medium')
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='todo')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     subtask = models.ManyToManyField(Subtasks, related_name='tasks')
     title = models.CharField(max_length=100)
 
     def __str__(self):
-        return f"{self.title} ({self.category}))"
+        return f"{self.title} ({self.category})"
