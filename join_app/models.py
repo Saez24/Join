@@ -1,14 +1,15 @@
 from django.db import models
+from django.db.models import JSONField
 
 # Create your models here.
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
 
     class Meta:
-        verbose_name = "Category"         
-        verbose_name_plural = "Categories" 
+        verbose_name = "Category"
+        verbose_name_plural = "Categories"
 
     def __str__(self):
         return self.name
@@ -20,38 +21,26 @@ class Names(models.Model):
     phone = models.TextField(max_length=100)
 
     class Meta:
-        verbose_name = "Name"         
-        verbose_name_plural = "Names" 
+        verbose_name = "Name"
+        verbose_name_plural = "Names"
 
     def __str__(self):
         return self.name
 
 
-class Subtasks(models.Model):
-    title = models.CharField(max_length=100, blank=True)
-    completed = models.BooleanField(default=False)
-
-    class Meta:
-        verbose_name = "Subtask"         
-        verbose_name_plural = "Subtasks"  
-
-    def __str__(self):
-        return self.title
-
-
 class TaskStatus(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
 
     class Meta:
-        verbose_name = "Taskstatus"       
-        verbose_name_plural = "Taskstatus" 
+        verbose_name = "Taskstatus"
+        verbose_name_plural = "Taskstatus"
 
     def __str__(self):
         return self.name
 
 
 class Priority(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
 
     class Meta:
         verbose_name = "Priority"         # Einzelbezeichnung
@@ -61,48 +50,32 @@ class Priority(models.Model):
         return self.name
 
 
-STATUS_CHOICES = [
-    ('todo', 'To Do'),
-    ('in_progress', 'In Progress'),
-    ('done', 'Done'),
-    # Weitere Statuswerte hier hinzufügen
-]
-
-PRIORITY_CHOICES = [
-    ('low', 'Low'),
-    ('medium', 'Medium'),
-    ('urgent', 'Urgent'),
-    # Weitere Prioritätswerte hier hinzufügen
-]
-
-CATEGORY_CHOICES = [
-    ('it', 'IT'),
-    ('finance', 'Finance'),
-    ('sales', 'Sales'),
-    ('hr', 'HR'),
-    ('marketing', 'Marketing'),
-    ('operations', 'Operations')
-]
-
-
 class Tasks(models.Model):
-    assigned_to = models.ManyToManyField(Names, related_name='tasks')
-    category = models.CharField(
-        max_length=20, choices=CATEGORY_CHOICES, default='')
+    assigned_to = models.ManyToManyField('Names', related_name='tasks')
+    category = models.CharField(max_length=100, blank=True)
     description = models.TextField()
     due_date = models.DateField()
-    priority = models.CharField(
-        max_length=20, choices=PRIORITY_CHOICES, default='medium')
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default='todo')
+    priority = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    subtask = models.ManyToManyField(Subtasks, related_name='tasks')
     title = models.CharField(max_length=100)
+    # Array von Subtasks als JSONField
+    subtasks = JSONField(blank=True, default=list)
 
     class Meta:
-        verbose_name = "Task"         # Einzelbezeichnung
-        verbose_name_plural = "Tasks"  # Mehrzahl festlegen
+        verbose_name = "Task"
+        verbose_name_plural = "Tasks"
 
     def __str__(self):
         return f"{self.title} ({self.category})"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Dynamische Auswahloptionen aus der Datenbank für die Felder laden
+        self._meta.get_field('category').choices = [
+            (cat.name, cat.name) for cat in Category.objects.all()]
+        self._meta.get_field('priority').choices = [
+            (pri.name, pri.name) for pri in Priority.objects.all()]
+        self._meta.get_field('status').choices = [
+            (stat.name, stat.name) for stat in TaskStatus.objects.all()]

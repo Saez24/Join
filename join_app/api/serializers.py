@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from join_app.models import Category, Names, Subtasks, TaskStatus, Priority, Tasks
+from join_app.models import Category, Names, TaskStatus, Priority, Tasks
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -25,13 +25,6 @@ class NamesHyperlinkedSerializer(NamesSerializer, serializers.HyperlinkedModelSe
 
     class Meta:
         model = Category
-        fields = '__all__'
-
-
-class SubtasksSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Subtasks
         fields = '__all__'
 
 

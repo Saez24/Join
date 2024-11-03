@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view
-from .serializers import CategorySerializer, NamesSerializer, SubtasksSerializer, TaskstatusSerializer, PrioritySerializer, TasksSerializer
-from join_app.models import Category, Names, Subtasks, TaskStatus, Priority, Tasks
+from .serializers import CategorySerializer, NamesSerializer, TaskstatusSerializer, PrioritySerializer, TasksSerializer
+from join_app.models import Category, Names, TaskStatus, Priority, Tasks
 from rest_framework.response import Response
 from rest_framework import viewsets
 
@@ -13,11 +13,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class NamesViewSet(viewsets.ModelViewSet):
     queryset = Names.objects.all()
     serializer_class = NamesSerializer
-
-
-class SubtasksViewSet(viewsets.ModelViewSet):
-    queryset = Subtasks.objects.all()
-    serializer_class = SubtasksSerializer
 
 
 class TaskstatusViewSet(viewsets.ModelViewSet):
