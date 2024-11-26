@@ -51,17 +51,17 @@ class Priority(models.Model):
 
 
 class Tasks(models.Model):
-    assigned_to = models.ManyToManyField('Names', related_name='tasks')
+    assignto = models.ManyToManyField('Names', related_name='tasks')
     category = models.CharField(max_length=100, blank=True)
     description = models.TextField()
-    due_date = models.DateField()
-    priority = models.CharField(max_length=100, blank=True)
+    duedate = models.DateField()
+    prio = models.CharField(max_length=100, blank=True)
     status = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     title = models.CharField(max_length=100)
     # Array von Subtasks als JSONField
-    subtasks = JSONField(blank=True, default=list)
+    subtask = JSONField(blank=True, default=list)
 
     class Meta:
         verbose_name = "Task"
@@ -75,7 +75,7 @@ class Tasks(models.Model):
         # Dynamische Auswahloptionen aus der Datenbank für die Felder laden
         self._meta.get_field('category').choices = [
             (cat.name, cat.name) for cat in Category.objects.all()]
-        self._meta.get_field('priority').choices = [
+        self._meta.get_field('prio').choices = [
             (pri.name, pri.name) for pri in Priority.objects.all()]
         self._meta.get_field('status').choices = [
             (stat.name, stat.name) for stat in TaskStatus.objects.all()]

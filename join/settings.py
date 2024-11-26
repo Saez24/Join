@@ -79,6 +79,10 @@ CORS_ALLOWED_ORIGINS = [
 
     'http://localhost:4200',
 
+    'http://127.0.0.1:49969',
+
+    'http://localhost:49969',
+
 ]
 
 ROOT_URLCONF = 'join.urls'
