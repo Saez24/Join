@@ -7,11 +7,26 @@
  * @returns {Promise<Object[]>} An array of task objects with their IDs.
  */
 async function fetchData(path = "tasks") {
-    let response = await fetch(BASE_URL + path + ".json");
-    let responseToJson = await response.json();
-    let responseToObject = Object.entries(responseToJson).map(([id, task]) => ({ id, ...task }));
-    return responseToObject;
-};
+    try {
+        const response = await fetch(BASE_URL + path); // Keine .json-Endung hinzufügen
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Prüfen, ob die API-Daten ein Array sind
+        if (Array.isArray(data)) {
+            return data; // Direkt zurückgeben, da die API-Daten schon ein Array sind
+        } else {
+            throw new Error("Invalid data format: Expected an array.");
+        }
+    } catch (error) {
+        console.error("Error fetching tasks:", error);
+        return [];
+    }
+}
+
 
 /**
  * Generates a random color excluding white.

@@ -52,24 +52,28 @@ function renderContacts(data) {
     const container = document.getElementById('contactForString');
     container.innerHTML = '';
 
+    // Kontakte nach Anfangsbuchstaben gruppieren
     const groupedContacts = groupByInitial(data);
 
+    // HTML-Inhalt für jeden Buchstaben und Kontakt generieren
     for (let initial in groupedContacts) {
         if (groupedContacts.hasOwnProperty(initial)) {
             container.innerHTML += `
                 <div class="capital-category">${initial}</div>
                 <div class="dividing-line"></div>
             `;
-            groupedContacts[initial].forEach((contact, index) => {
+
+            groupedContacts[initial].forEach(contact => {
                 const randomColor = getRandomColor();
-                const uniqueId = contact[0];
-                const contactData = contact[1];
                 container.innerHTML += `
-                    <div class="contact-row" id="${uniqueId}" onclick="renderContactInformation('${contactData.name}', '${contactData.email}', '${randomColor}', '${contactData.phonenumber}', '${uniqueId}')">
-                        <div class="initials" style="background-color: ${randomColor}" id="initials${index}">${getInitials(contactData.name)}</div>
+                    <div class="contact-row" id="contact-${contact.id}" 
+                         onclick="renderContactInformation('${contact.name}', '${contact.email}', '${randomColor}', '${contact.phone}', '${contact.id}')">
+                        <div class="initials" style="background-color: ${randomColor}">
+                            ${getInitials(contact.name)}
+                        </div>
                         <div class="name-and-email">
-                            <div class="contact-name-row">${contactData.name}</div>
-                            <div class="contact-email-row">${contactData.email}</div>
+                            <div class="contact-name-row">${contact.name}</div>
+                            <div class="contact-email-row">${contact.email}</div>
                         </div>
                     </div>
                 `;

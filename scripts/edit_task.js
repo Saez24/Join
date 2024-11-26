@@ -68,7 +68,7 @@ function fetchEditTask(taskid) {
  * @returns {Promise<Object>} The task data.
  */
 async function fetchTaskData(taskid) {
-    return fetch(`${BASE_URL}tasks/${taskid}.json`)
+    return fetch(`${BASE_URL}tasks/${taskid}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);

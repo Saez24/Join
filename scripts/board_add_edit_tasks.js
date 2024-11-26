@@ -145,17 +145,38 @@ function hidePopup(task, taskid, assignedNamesHTML, subtaskCountHTML, priorityIm
  */
 async function renderTaskDialog(taskid, subtaskid) {
     try {
-        const tasks = await fetchData();
-        const selectedTask = findSelectedTask(tasks, taskid);
+        // Alle Tasks als Array laden
+        const tasks = await fetchData('tasks'); // fetchData gibt ein Array zurück
+        // console.log('Übergebene taskid:', taskid);
+        // console.log('Alle Tasks:', tasks);
+
+        // Finde den Task mit der entsprechenden ID
+        const selectedTask = tasks.find(task => {
+            // console.log('Vergleiche task.id:', task.id, 'mit taskid:', taskid); // Logge den Vergleich
+            return task.id === Number(taskid); // Sicherstellen, dass der Vergleich korrekt ist
+        });
+
+        // console.log('Ausgewählter Task:', selectedTask);
+
+        // Wenn der Task nicht gefunden wird
         if (!selectedTask) {
-            return;
+            // console.error('Task nicht gefunden!');
+            // alert('Dieser Task existiert nicht.');
+            return; // Falls der Task nicht gefunden wird, brechen wir ab
         }
 
+        // Optional: Verarbeite die Details des ausgewählten Tasks
         const taskDetails = await processTaskDetails(selectedTask);
+
+        // Rendern der Task-Details
         renderTaskElements(taskDetails);
     } catch (error) {
+        console.error("Fehler beim Laden der Task-Daten:", error);
+        alert("Es gab ein Problem beim Laden der Task-Daten.");
     }
-};
+}
+
+
 
 /**
  * Renders HTML elements with processed task details.

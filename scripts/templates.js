@@ -1,4 +1,5 @@
-const BASE_URL = "https://remotestorage-b0ea0-default-rtdb.europe-west1.firebasedatabase.app/"
+// const BASE_URL = "https://remotestorage-b0ea0-default-rtdb.europe-west1.firebasedatabase.app/"
+const BASE_URL = "http://127.0.0.1:8000/api/"
 let currentTaskId = null;
 let names
 let category
@@ -117,5 +118,53 @@ function showSubmenu() {
         setTimeout(function () {
             submenu.classList.add('d-none');
         }, 80);
+    }
+}
+
+async function getNames(path = "names/") {
+    try {
+        const response = await fetch(BASE_URL + path);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        // API-Daten als JSON parsen
+        const data = await response.json();
+
+        // Prüfen, ob die API ein Array zurückgibt
+        if (Array.isArray(data)) {
+            // Hier wird das Array zurückgegeben, falls du es so nutzen möchtest
+            console.log(data);
+            return { names: data };  // Namen in einem Objekt zurückgeben
+        } else {
+            throw new Error("Invalid data format: Expected an array.");
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        return null;
+    }
+}
+
+async function getCategories(path = "categories/") {
+    try {
+        const response = await fetch(BASE_URL + path);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        // API-Daten als JSON parsen
+        const data = await response.json();
+
+        // Prüfen, ob die API ein Array zurückgibt
+        if (Array.isArray(data)) {
+            // Hier wird das Array zurückgegeben, falls du es so nutzen möchtest
+            console.log(data);
+            return { categories: data };  // Namen in einem Objekt zurückgeben
+        } else {
+            throw new Error("Invalid data format: Expected an array.");
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        return null;
     }
 }

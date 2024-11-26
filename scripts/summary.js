@@ -25,11 +25,25 @@ async function initializeSummary() {
  * This function can be given a certian path="" as parameter. 
  * For instance loadData('/tasks') explicity returns the sub-category "tasks" from the database.
  * */
-async function loadData(path = "") {
-    let response = await fetch(BASE_URL + path + ".json");
-    responseToJson = await response.json();
-    responseToObject = Object.values(responseToJson);
-    return responseToObject; 
+async function loadData(path = "tasks") {
+    try {
+        const response = await fetch(BASE_URL + path); // Keine .json-Endung hinzufügen
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Prüfen, ob die API-Daten ein Array sind
+        if (Array.isArray(data)) {
+            return data; // Direkt zurückgeben, da die API-Daten schon ein Array sind
+        } else {
+            throw new Error("Invalid data format: Expected an array.");
+        }
+    } catch (error) {
+        console.error("Error fetching tasks:", error);
+        return [];
+    }
 }
 
 
@@ -49,7 +63,7 @@ async function determineTasksInBoard() {
 async function determineUrgentTasks() {
     let responseToObject = await loadData('tasks');
     for (let i = 0; i < responseToObject.length; i++) {
-        if (responseToObject[i].prio === "urgent") {
+        if (responseToObject[i].priority === "Urgent") {
             amountTasksUrgent++;
         }
     }
@@ -111,8 +125,8 @@ async function determineDeadline() {
     let responseToObject = await loadData('tasks');
 
     for (let i = 0; i < responseToObject.length; i++) {
-        if (responseToObject[i].prio === "urgent") {
-            let taskDueDate = new Date(responseToObject[i].duedate);
+        if (responseToObject[i].priority === "Urgent") {
+            let taskDueDate = new Date(responseToObject[i].due_date);
 
             if (earliestDeadline === null || taskDueDate < earliestDeadline) {
                 earliestDeadline = taskDueDate;

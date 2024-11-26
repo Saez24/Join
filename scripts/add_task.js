@@ -12,21 +12,51 @@ function closeOnBackground(event) {
  */
 async function addTaskLoadNames() {
     try {
-        let response = await fetch(BASE_URL + ".json");
-        let data = await response.json();
-        let sortedKeys = Object.keys(data.names).sort((a, b) => {
-            let firstNameA = data.names[a].name.split(' ')[0].toUpperCase();
-            let firstNameB = data.names[b].name.split(' ')[0].toUpperCase();
-            return firstNameA.localeCompare(firstNameB);
-        });
+        const data = await getNames(); // Abrufen der Namen
+        const categories = await getCategories(); // Abrufen der Kategorien
+        console.log(data);
+        console.log(categories);
 
-        renderAddTaskNames(sortedKeys, data.names);
-        renderAddTaskCategories(data.category);
-        mediumButton();
+        // Überprüfen, ob sowohl names als auch categories verfügbar sind
+        if (data && data.names && categories && categories.categories) {
+            const sortedKeys = Object.keys(data.names).sort(); // Namen nach Schlüssel sortieren
+            renderAddTaskNames(sortedKeys, data.names); // Namen rendern
+            renderAddTaskCategories(categories.categories); // Kategorien rendern
+            mediumButton(); // Falls erforderlich
+        } else {
+            console.error("Missing names or categories data in the response.");
+        }
     } catch (error) {
         console.error("Error fetching data:", error);
     }
-};
+}
+
+
+
+async function getCategories(path = "categories/") {
+    try {
+        const response = await fetch(BASE_URL + path);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        // API-Daten als JSON parsen
+        const data = await response.json();
+
+        // Prüfen, ob die API ein Array zurückgibt
+        if (Array.isArray(data)) {
+            // Hier wird das Array zurückgegeben, falls du es so nutzen möchtest
+            console.log(data);
+            return { categories: data };  // Namen in einem Objekt zurückgeben
+        } else {
+            throw new Error("Invalid data format: Expected an array.");
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        return null;
+    }
+}
+
 
 /**
  * Generates HTML for displaying a name with a color-coded short name and a checkbox.

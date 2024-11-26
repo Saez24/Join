@@ -1,4 +1,5 @@
-window.onload = getNames;
+window.onload = () => getNames("names");
+
 let initialsBackgroundColors = [
     '#FF7A00', '#FF5EB3', '#6E52FF', '#9327FF', '#00BEE8',
     '#1FD7C1', '#FF745E', '#FFA35E', '#FC71FF', '#FFC701',
@@ -134,19 +135,22 @@ function showSuccessfullContactCreation() {
 }
 
 
-async function getNames() {
+async function getNames(path = "names/") {
     try {
-        let response = await fetch(BASE_URL + ".json");
+        const response = await fetch(BASE_URL + path);
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        let data = await response.json();
 
-        if (data && data.names && typeof data.names === 'object') {
-            let namesArray = Object.entries(data.names);
-            renderContacts(namesArray);
+        // API-Daten als JSON parsen
+        const data = await response.json();
+
+        // Prüfen, ob die API ein Array zurückgibt
+        if (Array.isArray(data)) {
+            // Daten an die renderContacts-Funktion weitergeben
+            renderContacts(data);
         } else {
-            throw new Error("Invalid data format");
+            throw new Error("Invalid data format: Expected an array.");
         }
     } catch (error) {
         console.error("Error fetching data:", error);
@@ -154,33 +158,30 @@ async function getNames() {
 }
 
 
-function getRandomColor() {
-    return initialsBackgroundColors[Math.floor(Math.random() * initialsBackgroundColors.length)];
-}
-
-
 function groupByInitial(data) {
-    let grouped = data.reduce((acc, [id, contact]) => {
-        const initial = contact.name.charAt(0).toUpperCase();
+    return data.reduce((acc, contact) => {
+        const initial = contact.name[0].toUpperCase();
         if (!acc[initial]) {
             acc[initial] = [];
         }
-        acc[initial].push([id, contact]);
+        acc[initial].push(contact);
         return acc;
     }, {});
-
-    let sortedGrouped = {};
-    Object.keys(grouped).sort().forEach(key => {
-        sortedGrouped[key] = grouped[key];
-    });
-
-    return sortedGrouped;
 }
 
+// Beispiel für getInitials
 function getInitials(name) {
-    if (!name) return '';
-    let initials = name.split(' ').map(part => part.charAt(0)).join('');
-    return initials.toUpperCase();
+    return name
+        .split(' ')
+        .map(part => part[0])
+        .join('')
+        .toUpperCase();
+}
+
+// Beispiel für getRandomColor
+function getRandomColor() {
+    const colors = ['#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33F3'];
+    return colors[Math.floor(Math.random() * colors.length)];
 }
 
 function renderContactInformation(name, email, color, phone, id) {

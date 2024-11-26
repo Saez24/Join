@@ -124,7 +124,7 @@ function renderAddTaskCategories(categories) {
             let categoryId = categoryKey;
             categoryContainer.innerHTML += /*html*/ `
             <div class="dropdown_selection" onclick="dropdownSelectCategory(this)">
-                <label class="label">${category.task}</label>
+                <label class="label">${category.name}</label>
                 <input class="checkbox" type="checkbox" id="category_${categoryId}">
             </div>
             `;
