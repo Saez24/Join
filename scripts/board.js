@@ -1,32 +1,4 @@
-/**
- * Fetches data from Firebase.
- * 
- * @async
- * @function fetchData
- * @param {string} [path="tasks"] - The path in the Firebase database to fetch data from.
- * @returns {Promise<Object[]>} An array of task objects with their IDs.
- */
-async function fetchData(path = "tasks") {
-    try {
-        const response = await fetch(BASE_URL + path); // Keine .json-Endung hinzufügen
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // Prüfen, ob die API-Daten ein Array sind
-        if (Array.isArray(data)) {
-            return data; // Direkt zurückgeben, da die API-Daten schon ein Array sind
-        } else {
-            throw new Error("Invalid data format: Expected an array.");
-        }
-    } catch (error) {
-        console.error("Error fetching tasks:", error);
-        return [];
-    }
-}
-
+let assignedNamesHTMLCache = new Map();
 
 /**
  * Generates a random color excluding white.
@@ -42,6 +14,11 @@ function generateRandomColor() {
     return randomColor;
 };
 
+function renderAssignedNames(task) {
+    generateAssignedNamesHTML(task.assignto)
+    console.log(task.assignto);
+}
+
 /**
  * Generates HTML for assigned names with a 'Plus' button for overflow.
  * 
@@ -49,10 +26,25 @@ function generateRandomColor() {
  * @param {string[]} assignedNames - An array of names assigned to a task.
  * @returns {string} HTML string representing the assigned names.
  */
-function generateAssignedNamesHTML(assignedNames) {
+async function generateAssignedNamesHTML(assignedIds) {
+    // Überprüfen, ob HTML für diese IDs bereits im Cache ist
+    const key = assignedIds.join(',');
+    if (assignedNamesHTMLCache.has(key)) {
+        return assignedNamesHTMLCache.get(key);
+    }
+
+    // Generiere das HTML, wenn es nicht im Cache ist
     let MAX_NAMES_DISPLAYED = 3;
     let position = 0;
     let html = '';
+
+    const assignedNames = await getAssignedNames(assignedIds);
+    console.log(assignedNames);
+
+    if (!assignedNames || assignedNames.length === 0) {
+        return ''; // Keine Namen zum Anzeigen
+    }
+
     let overflowCount = Math.max(0, assignedNames.length - MAX_NAMES_DISPLAYED);
 
     assignedNames.slice(0, MAX_NAMES_DISPLAYED).forEach(name => {
@@ -68,8 +60,34 @@ function generateAssignedNamesHTML(assignedNames) {
             <div class="moreButtonBoard" style="left:${position}px">+${overflowCount}</div>`;
     }
 
+    // Speichere das HTML im Cache
+    assignedNamesHTMLCache.set(key, html);
     return html;
-};
+}
+
+
+async function getAssignedNames(assignedIds) {
+    try {
+        // Lade die Namen-Daten von der API
+        const { names } = await getNames(); // getNames gibt ein Objekt mit einem Array zurück
+
+        if (!names || !Array.isArray(names)) {
+            throw new Error("Names data is invalid.");
+        }
+
+        // Mappe die IDs auf die Namen, indem du nach der ID suchst
+        const assignedNames = assignedIds.map(id => {
+            const person = names.find(name => name.id === id);
+            return person ? person.name : null; // Wenn der Name nicht gefunden wird, gib null zurück
+        });
+
+        return assignedNames.filter(name => name !== null); // Filtere null-Werte raus
+    } catch (error) {
+        console.error("Error fetching assigned names:", error);
+        return [];
+    }
+}
+
 
 /**
  * Generates HTML content for displaying subtask count and progress bar.
@@ -80,7 +98,7 @@ function generateAssignedNamesHTML(assignedNames) {
  */
 function generateSubtaskCountHTML(subtasks, isChecked, taskId) {
     let totalSubtasks = subtasks ? subtasks.length : 0;
-    let completedSubtasks = subtasks ? subtasks.filter(subtask => subtask.Boolean).length : 0;
+    let completedSubtasks = subtasks ? subtasks.filter(subtask => subtask.completed).length : 0;
     let progressPercentage = totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0;
     let progressBarStyle = `width: ${progressPercentage}%;`;
     let count = `${completedSubtasks}/${totalSubtasks} Subtask${totalSubtasks !== 1 ? 's' : ''}`;
@@ -102,7 +120,7 @@ function generateSubtaskCountHTML(subtasks, isChecked, taskId) {
  */
 function createTaskElement(task, search) {
     let taskid = task.id; // Use the task ID from Firebase
-    let assignedNamesHTML = generateAssignedNamesHTML(task.assignto || []);
+    let assignedNamesHTML = renderAssignedNames(task);
     let subtaskCountHTML = generateSubtaskCountHTML(task.subtask || [], false, taskid); // Pass taskid here
     let priorityImage = buttonImages[task.prio] || './assets/img/prio_media.png';
     let categoryColor = CategoryColors[task.category] || { background: '#000000', color: '#FFFFFF' };
@@ -257,14 +275,16 @@ function extractTaskData(selectedTask) {
  */
 function generateHTMLContent(assignto, subtasks, taskId) {
     const assignedNamesHTML = generateAssignedNamesHTML(assignto);
+    console.log(assignto);
+
     const assigntoHTML = assignto.map(name => ``).join('');
     const generateInitialsAndNameHTML = (names) => {
         return names.map(name => {
-            const initials = name.split(' ').map(word => word[0]).join('');
+            // const initials = name.split(' ').map(word => word[0]).join('');
             const randomColor = generateRandomColor();
             return `
                 <div class="assignedtoDialogInitials">
-                    <p class="assignedName" style="background-color: ${randomColor};">${initials}</p>
+                    <p class="assignedName" style="background-color: ${randomColor};"></p>
                     <p>${name}</p>
                 </div>
             `;

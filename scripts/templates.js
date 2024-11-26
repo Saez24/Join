@@ -134,7 +134,7 @@ async function getNames(path = "names/") {
         // Prüfen, ob die API ein Array zurückgibt
         if (Array.isArray(data)) {
             // Hier wird das Array zurückgegeben, falls du es so nutzen möchtest
-            console.log(data);
+
             return { names: data };  // Namen in einem Objekt zurückgeben
         } else {
             throw new Error("Invalid data format: Expected an array.");
@@ -158,7 +158,7 @@ async function getCategories(path = "categories/") {
         // Prüfen, ob die API ein Array zurückgibt
         if (Array.isArray(data)) {
             // Hier wird das Array zurückgegeben, falls du es so nutzen möchtest
-            console.log(data);
+
             return { categories: data };  // Namen in einem Objekt zurückgeben
         } else {
             throw new Error("Invalid data format: Expected an array.");
@@ -166,5 +166,30 @@ async function getCategories(path = "categories/") {
     } catch (error) {
         console.error("Error fetching data:", error);
         return null;
+    }
+
+
+}
+
+async function fetchData(path = "tasks") {
+    try {
+        const response = await fetch(BASE_URL + path); // Keine .json-Endung hinzufügen
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(data);
+        await getNames();
+
+        // Prüfen, ob die API-Daten ein Array sind
+        if (Array.isArray(data)) {
+            return data; // Direkt zurückgeben, da die API-Daten schon ein Array sind
+        } else {
+            throw new Error("Invalid data format: Expected an array.");
+        }
+    } catch (error) {
+        console.error("Error fetching tasks:", error);
+        return [];
     }
 }
