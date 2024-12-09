@@ -15,9 +15,11 @@ function generateRandomColor() {
 };
 
 function renderAssignedNames(task) {
-    generateAssignedNamesHTML(task.assignto)
-    console.log(task.assignto);
+    let html = generateAssignedNamesHTML(task.assignto);
+    // console.log("Rendered Assigned Names HTML:", html);
+    return html;
 }
+
 
 /**
  * Generates HTML for assigned names with a 'Plus' button for overflow.
@@ -39,7 +41,6 @@ async function generateAssignedNamesHTML(assignedIds) {
     let html = '';
 
     const assignedNames = await getAssignedNames(assignedIds);
-    console.log(assignedNames);
 
     if (!assignedNames || assignedNames.length === 0) {
         return ''; // Keine Namen zum Anzeigen
@@ -50,9 +51,14 @@ async function generateAssignedNamesHTML(assignedIds) {
     assignedNames.slice(0, MAX_NAMES_DISPLAYED).forEach(name => {
         let initials = name.split(' ').map(n => n[0]).join('');
         let randomColor = generateRandomColor();
+
         html += /*html*/`
-            <div class="assignedName" style="background-color: ${randomColor};"><span>${initials}</span></div>`;
+        <div class="assignedName" style="background-color: ${randomColor};">
+            <span>${initials}</span>
+        </div>`;
     });
+
+    // console.log('Final HTML:', html);
 
     if (overflowCount > 0) {
         position += 110;
@@ -62,6 +68,8 @@ async function generateAssignedNamesHTML(assignedIds) {
 
     // Speichere das HTML im Cache
     assignedNamesHTMLCache.set(key, html);
+    // console.log('assignedNamesHTMLCache:', assignedNamesHTMLCache);
+
     return html;
 }
 
@@ -119,20 +127,26 @@ function generateSubtaskCountHTML(subtasks, isChecked, taskId) {
  * @returns {string} HTML string representing the task element.
  */
 function createTaskElement(task, search) {
-    let taskid = task.id; // Use the task ID from Firebase
+    let taskid = task.id; // Verwende die Task-ID
+    // Warte auf das Ergebnis von renderAssignedNames
     let assignedNamesHTML = renderAssignedNames(task);
-    let subtaskCountHTML = generateSubtaskCountHTML(task.subtask || [], false, taskid); // Pass taskid here
+
+    // Der Rest des Codes bleibt gleich
+    let subtaskCountHTML = generateSubtaskCountHTML(task.subtask || [], false, taskid); // Task-ID übergeben
     let priorityImage = buttonImages[task.prio] || './assets/img/prio_media.png';
     let categoryColor = CategoryColors[task.category] || { background: '#000000', color: '#FFFFFF' };
     let descriptionSection = task.description ? `<p class="descriptionBox">${task.description}</p>` : '';
 
+    // Task-Element nur erstellen, wenn alle Daten verfügbar sind
     if (shouldCreateTaskElement(task, assignedNamesHTML, search)) {
-        setTimeout(checkEmptyTaskContainers, 0); // Warum ein Timeout?
+        setTimeout(checkEmptyTaskContainers, 0);
         return createTaskHTML(task, taskid, assignedNamesHTML, subtaskCountHTML, priorityImage, categoryColor, descriptionSection);
     }
     setTimeout(checkEmptyTaskContainers, 0);
     return '';
-};
+}
+
+
 
 /**
  * Creates the HTML string for a task element.
@@ -146,7 +160,7 @@ function createTaskElement(task, search) {
  * @param {string} descriptionSection - Optional HTML string for the task description.
  * @returns {string} HTML string representing the task element.
  */
-function createTaskHTML(task, taskid, assignedNamesHTML, subtaskCountHTML, priorityImage, categoryColor, descriptionSection) {
+function createTaskHTML(task, taskid, assignedNamesHTMLCache, subtaskCountHTML, priorityImage, categoryColor, descriptionSection) {
     return /*html*/`
         <div id="${taskid}" draggable="true" ondragstart="startDragging('${taskid}')" class="toDoBox" onclick="showPopup('${taskid}')">
             <div class="taskHeader">
@@ -164,7 +178,7 @@ function createTaskHTML(task, taskid, assignedNamesHTML, subtaskCountHTML, prior
             ${descriptionSection}
             ${subtaskCountHTML} <!-- Insert subtask count HTML here -->
             <div class="nameSection">
-                ${assignedNamesHTML}
+                ${assignedNamesHTMLCache}
                 <div class="prioImgContainer">
                     <img class="prioImg" src="${priorityImage}" alt="Priority">
                 </div>
@@ -275,7 +289,7 @@ function extractTaskData(selectedTask) {
  */
 function generateHTMLContent(assignto, subtasks, taskId) {
     const assignedNamesHTML = generateAssignedNamesHTML(assignto);
-    console.log(assignto);
+
 
     const assigntoHTML = assignto.map(name => ``).join('');
     const generateInitialsAndNameHTML = (names) => {
@@ -294,8 +308,8 @@ function generateHTMLContent(assignto, subtasks, taskId) {
     const assignedNamesHTMLSeparated = generateInitialsAndNameHTML(assignto);
     const subtaskHTML = subtasks.map((task, index) => `
         <div class="subtaskItem">
-            <input id="subtask-${index}" type="checkbox" ${task.Boolean ? 'checked' : ''} onchange="updateSubtaskStatus('${taskId}', ${index}, this.checked)">
-            <p>${task.Titel}</p>
+            <input id="subtask-${index}" type="checkbox" ${task.completed ? 'checked' : ''} onchange="updateSubtaskStatus('${taskId}', ${index}, this.checked)">
+            <p>${task.title}</p>
         </div>
     `).join('');
 
@@ -304,12 +318,15 @@ function generateHTMLContent(assignto, subtasks, taskId) {
 };
 
 async function updateSubtaskStatus(taskId, index, isChecked) {
+    console.log(taskId);
     try {
-        let response = await fetch(BASE_URL + "tasks.json");
+        let response = await fetch(BASE_URL + "tasks/" + taskId);
         let tasksObject = await response.json();
 
         if (tasksObject[taskId]?.subtask && tasksObject[taskId].subtask[index]) {
-            tasksObject[taskId].subtask[index].Boolean = isChecked;
+            tasksObject[taskId].subtask[index].completed = isChecked;
+
+
         } else {
             console.error(`Subtask with index ${index} not found for task ${taskId}`);
             return;

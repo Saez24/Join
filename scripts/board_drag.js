@@ -9,6 +9,8 @@
  */
 function startDragging(id) {
     currentDraggedElement = id;
+    console.log(`Started dragging task with id: ${id}`);
+
 };
 
 /**
@@ -43,10 +45,10 @@ async function moveTo(newStatus) {
  * @param {string} taskId - The ID of the task to update.
  * @param {string} newStatus - The new status to set for the task.
  */
-async function updateTaskStatus(taskId, newStatus) {
+async function updateTaskStatus(taskId, newStatus, path = "tasks/") {
     try {
         // Fetch current tasks from Firebase
-        let response = await fetch(BASE_URL + "tasks.json");
+        let response = await fetch(BASE_URL + path);
         let tasksObject = await response.json();
 
         // Find the task by id and update its status
@@ -54,7 +56,7 @@ async function updateTaskStatus(taskId, newStatus) {
             tasksObject[taskId].status = newStatus;
 
             // Update tasks in Firebase
-            await fetch(BASE_URL + "tasks.json", {
+            await fetch(BASE_URL + path, {
                 method: 'PATCH',
                 body: JSON.stringify({ [taskId]: tasksObject[taskId] }),
                 headers: {

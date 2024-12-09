@@ -3,6 +3,7 @@
  * @returns {Object} The updated task data.
  */
 function getUpdatedTaskData() {
+    // let id = document.getElementById('TaskDetailsDialog').getAttribute('data-taskid');
     let title = getTitleInput();
     let description = getDescriptionInput();
     let duedate = getDueDateInput();
@@ -98,19 +99,27 @@ async function saveUpdatedTask(taskid) {
     }
 
     await updateTask(taskid, updatedData);
+    console.log(updatedData);
+
     displayTasks();
     closeDialogEdit();
 };
 
 async function updateTask(taskid, updatedData) {
     try {
-        let response = await fetch(`${BASE_URL}tasks/${taskid}.json`, {
+
+        console.log("Sende Anfrage zum Aktualisieren...");
+        console.log("Task-ID:", taskid);
+        console.log("Daten:", updatedData);
+        let response = await fetch(`${BASE_URL}tasks/${taskid}/`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(updatedData)
         });
+
+        console.log(response);
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);

@@ -156,8 +156,6 @@ async function renderTaskDialog(taskid, subtaskid) {
             return task.id === Number(taskid); // Sicherstellen, dass der Vergleich korrekt ist
         });
 
-        console.log('Ausgewählter Task:', selectedTask);
-
         // Wenn der Task nicht gefunden wird
         if (!selectedTask) {
             // console.error('Task nicht gefunden!');

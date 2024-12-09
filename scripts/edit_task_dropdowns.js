@@ -3,16 +3,18 @@
  */
 async function editAddTaskLoadNames() {
     try {
-        let response = await fetch(BASE_URL + ".json");
-        let data = await response.json();
-        let sortedKeys = Object.keys(data.names).sort((a, b) => {
-            let firstNameA = data.names[a].name.split(' ')[0].toUpperCase();
-            let firstNameB = data.names[b].name.split(' ')[0].toUpperCase();
-            return firstNameA.localeCompare(firstNameB);
-        });
+        const data = await getNames(); // Abrufen der Namen
+        const categories = await getCategories(); // Abrufen der Kategorien
 
-        editRenderAddTaskNames(sortedKeys, data.names);
-        editRenderAddTaskCategories(data.category);
+        // Überprüfen, ob sowohl names als auch categories verfügbar sind
+        if (data && data.names && categories && categories.categories) {
+            const sortedKeys = Object.keys(data.names).sort(); // Namen nach Schlüssel sortieren
+            editRenderAddTaskNames(sortedKeys, data.names); // Namen rendern
+            editRenderAddTaskCategories(categories.categories); // Kategorien rendern
+
+        } else {
+            console.error("Missing names or categories data in the response.");
+        }
     } catch (error) {
         console.error("Error fetching data:", error);
     }

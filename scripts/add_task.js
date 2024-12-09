@@ -14,8 +14,6 @@ async function addTaskLoadNames() {
     try {
         const data = await getNames(); // Abrufen der Namen
         const categories = await getCategories(); // Abrufen der Kategorien
-        console.log(data);
-        console.log(categories);
 
         // Überprüfen, ob sowohl names als auch categories verfügbar sind
         if (data && data.names && categories && categories.categories) {
@@ -46,7 +44,6 @@ async function getCategories(path = "categories/") {
         // Prüfen, ob die API ein Array zurückgibt
         if (Array.isArray(data)) {
             // Hier wird das Array zurückgegeben, falls du es so nutzen möchtest
-            console.log(data);
             return { categories: data };  // Namen in einem Objekt zurückgeben
         } else {
             throw new Error("Invalid data format: Expected an array.");
