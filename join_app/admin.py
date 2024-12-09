@@ -19,7 +19,7 @@ class TasksAdminForm(forms.ModelForm):
         # Setzen der Auswahloptionen für Kategorie, Priorität und Status
         self.fields['category'].choices = [
             (cat.name, cat.name) for cat in Category.objects.all()]
-        self.fields['priority'].choices = [
+        self.fields['prio'].choices = [
             (pri.name, pri.name) for pri in Priority.objects.all()]
         self.fields['status'].choices = [
             (stat.name, stat.name) for stat in TaskStatus.objects.all()]

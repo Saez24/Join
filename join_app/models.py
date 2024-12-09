@@ -43,7 +43,7 @@ class Priority(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
     class Meta:
-        verbose_name = "Priority"         # Einzelbezeichnung
+        verbose_name = "Prio"         # Einzelbezeichnung
         verbose_name_plural = "Priorities"  # Mehrzahl festlegen
 
     def __str__(self):
