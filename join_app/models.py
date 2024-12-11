@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import JSONField
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -18,7 +19,7 @@ class Category(models.Model):
 class Names(models.Model):
     name = models.CharField(max_length=100)
     email = models.TextField(max_length=100)
-    phone = models.TextField(max_length=100)
+    phone = models.TextField(max_length=100, blank=True)
 
     class Meta:
         verbose_name = "Name"
@@ -51,7 +52,7 @@ class Priority(models.Model):
 
 
 class Tasks(models.Model):
-    assignto = models.ManyToManyField('Names', related_name='tasks')
+    assignto = models.ManyToManyField(User, related_name='tasks')
     category = models.CharField(max_length=100, blank=True)
     description = models.TextField()
     duedate = models.DateField()
