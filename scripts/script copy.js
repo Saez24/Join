@@ -1,67 +1,65 @@
-const BASE_URL = "http://127.0.0.1:8000/api/auth/login/";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+const firebaseConfig = {
+    apiKey: "AIzaSyDrm2QShTbbwiC0gpPDPP2LfdkdwQTZ5MI",
+    authDomain: "remotestorage-b0ea0.firebaseapp.com",
+    databaseURL: "https://remotestorage-b0ea0-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "remotestorage-b0ea0",
+    storageBucket: "remotestorage-b0ea0.appspot.com",
+    messagingSenderId: "997644324716",
+    appId: "1:997644324716:web:641faa74f9c4ddd39f2d49"
+};
+
+let app = initializeApp(firebaseConfig);
+let auth = getAuth();
+let guestLogin = document.getElementById("guest-login");
 let login = document.getElementById("login");
 let errorContainer = document.getElementById('error');
 let errorInput = document.getElementById('password');
 
 /**
- * Handles the login button click event, sends login request to Django backend,
- * stores the token in LocalStorage, and redirects on success.
+ * Handles the login button click event, signs in the user with email and password,
+ * and redirects to the summary page on success. Displays error message on failure.
+ * 
+ * @param {Event} event - The click event.
  */
-login.addEventListener('click', async function (event) {
+login.addEventListener('click', function (event) {
     event.preventDefault();
 
     let email = document.getElementById("email").value;
     let password = document.getElementById("password").value;
 
-    try {
-        let response = await fetch(BASE_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ email: email, password: password })
-        });
-
-        let data = await response.json();
-
-        if (response.ok) {
-            // Store token and redirect
-            localStorage.setItem("token", data.token);
+    signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
             window.location.href = "summary.html";
-        } else {
-            // Show error
+        })
+        .catch((error) => {
+            let errorCode = error.code;
+            let errorMessage = error.message;
             errorContainer.style.display = 'block';
-            errorContainer.innerText = "Login fehlgeschlagen!";
             errorInput.style.borderColor = '#ff8190';
-        }
-    } catch (error) {
-        console.error("Fehler:", error);
-        errorContainer.style.display = 'block';
-        errorContainer.innerText = "Ein Fehler ist aufgetreten!";
-        errorInput.style.borderColor = '#ff8190';
-    }
+        });
 });
 
+/**
+ * Handles the guest login button click event, signs in the user anonymously,
+ * and redirects to the summary page on success. Displays error message on failure.
+ * 
+ * @param {Event} event - The click event.
+ */
+guestLogin.addEventListener('click', function (event) {
+    event.preventDefault();
 
-// /**
-//  * Handles the guest login button click event, signs in the user anonymously,
-//  * and redirects to the summary page on success. Displays error message on failure.
-//  * 
-//  * @param {Event} event - The click event.
-//  */
-// guestLogin.addEventListener('click', function (event) {
-//     event.preventDefault();
-
-//     signInAnonymously(auth)
-//         .then(() => {
-//             window.location.href = "summary.html";
-//         })
-//         .catch((error) => {
-//             let errorCode = error.code;
-//             let errorMessage = error.message;
-//         });
-// });
+    signInAnonymously(auth)
+        .then(() => {
+            window.location.href = "summary.html";
+        })
+        .catch((error) => {
+            let errorCode = error.code;
+            let errorMessage = error.message;
+        });
+});
 
 /**
  * Sets the background image of the password input field to a lock icon.

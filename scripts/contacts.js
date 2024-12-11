@@ -1,4 +1,5 @@
-window.onload = () => getNames("names");
+// window.onload = () => getNames();
+document.addEventListener('DOMContentLoaded', () => getNames());
 
 let initialsBackgroundColors = [
     '#FF7A00', '#FF5EB3', '#6E52FF', '#9327FF', '#00BEE8',
@@ -135,7 +136,7 @@ function showSuccessfullContactCreation() {
 }
 
 
-async function getNames(path = "names/") {
+async function getNames(path = "auth/users/") {
     try {
         const response = await fetch(BASE_URL + path);
         if (!response.ok) {
@@ -144,6 +145,8 @@ async function getNames(path = "names/") {
 
         // API-Daten als JSON parsen
         const data = await response.json();
+        console.log(data);
+
 
         // Prüfen, ob die API ein Array zurückgibt
         if (Array.isArray(data)) {
@@ -158,25 +161,25 @@ async function getNames(path = "names/") {
 }
 
 
-function groupByInitial(data) {
-    return data.reduce((acc, contact) => {
-        const initial = contact.name[0].toUpperCase();
-        if (!acc[initial]) {
-            acc[initial] = [];
+function groupByInitial(contacts) {
+    return contacts.reduce((grouped, contact) => {
+        const initial = contact.first_name.charAt(0).toUpperCase(); // Anfangsbuchstabe des Vornamens
+        if (!grouped[initial]) {
+            grouped[initial] = [];
         }
-        acc[initial].push(contact);
-        return acc;
+        grouped[initial].push(contact);
+        return grouped;
     }, {});
 }
 
+
 // Beispiel für getInitials
-function getInitials(name) {
-    return name
-        .split(' ')
-        .map(part => part[0])
-        .join('')
-        .toUpperCase();
+function getInitials(firstName, lastName) {
+    const firstInitial = firstName.charAt(0).toUpperCase();
+    const lastInitial = lastName.charAt(0).toUpperCase();
+    return `${firstInitial}${lastInitial}`;
 }
+
 
 // Beispiel für getRandomColor
 function getRandomColor() {

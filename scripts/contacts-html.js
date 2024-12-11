@@ -50,7 +50,7 @@ function renderContactSummary(color, name, email, phone, uniqueId) {
 
 function renderContacts(data) {
     const container = document.getElementById('contactForString');
-    container.innerHTML = '';
+    container.innerHTML = ''; // Leert den Container
 
     // Kontakte nach Anfangsbuchstaben gruppieren
     const groupedContacts = groupByInitial(data);
@@ -63,16 +63,18 @@ function renderContacts(data) {
                 <div class="dividing-line"></div>
             `;
 
+            // Kontakte innerhalb der Gruppe
             groupedContacts[initial].forEach(contact => {
-                const randomColor = getRandomColor();
+                const randomColor = getRandomColor(); // Zufällige Farbe für Initialen
+                const initials = getInitials(contact.first_name, contact.last_name); // Initialen generieren
                 container.innerHTML += `
                     <div class="contact-row" id="contact-${contact.id}" 
-                         onclick="renderContactInformation('${contact.name}', '${contact.email}', '${randomColor}', '${contact.phone}', '${contact.id}')">
+                         onclick="renderContactInformation('${contact.first_name} ${contact.last_name}', '${contact.email}', '${randomColor}', '${contact.phone}', '${contact.id}')">
                         <div class="initials" style="background-color: ${randomColor}">
-                            ${getInitials(contact.name)}
+                            ${initials}
                         </div>
                         <div class="name-and-email">
-                            <div class="contact-name-row">${contact.name}</div>
+                            <div class="contact-name-row">${contact.first_name} ${contact.last_name}</div>
                             <div class="contact-email-row">${contact.email}</div>
                         </div>
                     </div>

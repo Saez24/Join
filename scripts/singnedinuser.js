@@ -1,69 +1,55 @@
-const BASE_URL = "https://remotestorage-b0ea0-default-rtdb.europe-west1.firebasedatabase.app/"
 
-const publicPages = ['index.html', 'privacy_policy.html', 'legal_notice.html', 'signup.html', 'help.html'];
-
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-let firebaseConfig = {
-    apiKey: "AIzaSyDrm2QShTbbwiC0gpPDPP2LfdkdwQTZ5MI",
-    authDomain: "remotestorage-b0ea0.firebaseapp.com",
-    databaseURL: "https://remotestorage-b0ea0-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "remotestorage-b0ea0",
-    storageBucket: "remotestorage-b0ea0.appspot.com",
-    messagingSenderId: "997644324716",
-    appId: "1:997644324716:web:641faa74f9c4ddd39f2d49"
-};
-// Initialize Firebase
-let app = initializeApp(firebaseConfig);
-let auth = getAuth();
-let user = auth.currentUser;
+const publicPages = ['index.html', 'privacy_policy.html', 'legal_notice.html', 'signup.html', 'help.html', 'contacts.html'];
 
 /**
- * Fetches user data based on the provided email address and renders the user's name.
- * @param {string} email - The email address of the user.
- * @returns {Promise<void>}
+ * Fetches user data from the token and renders the user's name.
  */
-async function fetchUserData(email) {
-    try {
-        let response = await fetch(BASE_URL + ".json");
-        let data = await response.json();
-        let userNameData = findNameByEmail(data.names, email);
-        if (userNameData) {
-            renderUserName(userNameData.name);
-        }
-    } catch (error) {
+async function checkAuth() {
+    const token = localStorage.getItem("token");
 
-    }
-};
+    if (token) {
+        try {
+            let response = await fetch(BASE_URL + "auth/users/", {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
 
-/**
- * Finds a user's name based on their email address.
- * @param {Object} names - The object containing user data.
- * @param {string} email - The email address to search for.
- * @returns {Object|null} The user's data if found, otherwise null.
- */
-function findNameByEmail(names, email) {
-    for (let key in names) {
-        if (names[key].email === email) {
-            return names[key];
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            let data = await response.json();
+            const user = data.find(user => user.token === token);
+
+            if (user) {
+                document.getElementById('sidebarMenu').style.visibility = "visible";
+                renderUserName(user);
+            } else {
+                // Wenn kein Benutzer mit diesem Token gefunden wird, dann logout
+                // handleLogout();
+            }
+        } catch (error) {
+            console.error("Fehler:", error);
+            // handleLogout();
         }
+    } else {
+        // handleLogout();
     }
-    return null;
-};
+}
+
+// Authentifizierungsstatus beim Laden der Seite prüfen
+window.onload = checkAuth;
 
 /**
  * Renders the user's name in the DOM.
- * @param {string|null} name - The user's name. If null, displays 'GS'.
+ * @param {string|null} name - The user's name. If null, displays 'Guest'.
  */
-function renderUserName(name) {
-    let userHTML = generateNameUserblock(name);
+function renderUserName(user) {
+    let userHTML = generateNameUserblock(user);
     renderNameToUserblock(userHTML);
-};
+}
 
 /**
  * Renders the generated HTML for the user's name to the user block element.
@@ -72,58 +58,33 @@ function renderUserName(name) {
 function renderNameToUserblock(userHTML) {
     let userBlock = document.getElementById("userblock");
     userBlock.innerHTML = userHTML;
-};
+}
 
 /**
  * Generates HTML for displaying the user's initials or 'Guest' if the name is null.
  * @param {string|null} name - The user's name. If null, displays 'Guest'.
  * @returns {string} The generated HTML string.
  */
-function generateNameUserblock(name) {
-    let firstInitial, lastInitial;
-    if (name) {
-        let nameParts = name.split(' ');
-        firstInitial = nameParts[0].charAt(0).toUpperCase();
-        lastInitial = nameParts.length > 1 ? nameParts[1].charAt(0).toUpperCase() : '';
-    } else {
-        firstInitial = 'G';
-        lastInitial = '';
-        name = 'Guest';
+function generateNameUserblock(user) {
+    let firstInitial = 'G', lastInitial = '';
+    let name = 'Guest';
+    if (user && user.first_name && user.last_name) {
+        firstInitial = user.first_name.charAt(0).toUpperCase();
+        lastInitial = user.last_name.charAt(0).toUpperCase();
+        name = `${user.first_name} ${user.last_name}`;
     }
+
     return /*html*/ `
-        <button class="shortname"><h4 id="fullname" style="display: none;">${name}</h4><h2>${firstInitial}${lastInitial}</h2></button>
+        <button class="shortname"><h4 id="fullname" style="display: none;">${user || 'Guest'}</h4><h2>${firstInitial}${lastInitial}</h2></button>
     `;
-};
-
-//  * Monitors Firebase authentication state changes and fetches user data if a user is signed in.
-//  */
-onAuthStateChanged(auth, (user) => {
-    const currentPage = window.location.pathname.split('/').pop();
-    if (user) {
-        let email = user.email;
-        document.getElementById('sidebarMenu').style.visibility = "visible";
-        fetchUserData(email);
-        renderUserName();
-    } else {
-        document.getElementById('sidebarMenu').style.visibility = "hidden";
-        if (!publicPages.includes(currentPage)) {
-            window.location.href = "index.html";
-        }
-
-        renderUserName(null);
-    }
-});
+}
 
 /**
  * Logs out the current user and redirects to the index page.
- * @returns {Promise<void>}
  */
 function handleLogout() {
-    signOut(auth).then(() => {
-        window.location.href = "index.html";
-    }).catch((error) => {
-        console.error('Error during sign out:', error);
-    });
-};
+    localStorage.removeItem("token");
+    window.location.href = "index.html";
+}
 
 window.handleLogout = handleLogout;

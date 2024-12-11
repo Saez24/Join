@@ -1,5 +1,23 @@
-const BASE_URL = "http://127.0.0.1:8000/api/";
+const BASE_URL = "https://remotestorage-b0ea0-default-rtdb.europe-west1.firebasedatabase.app/";
 
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyDrm2QShTbbwiC0gpPDPP2LfdkdwQTZ5MI",
+    authDomain: "remotestorage-b0ea0.firebaseapp.com",
+    databaseURL: "https://remotestorage-b0ea0-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "remotestorage-b0ea0",
+    storageBucket: "remotestorage-b0ea0.appspot.com",
+    messagingSenderId: "997644324716",
+    appId: "1:997644324716:web:641faa74f9c4ddd39f2d49"
+};
+
+// Initialize Firebase
+let app = initializeApp(firebaseConfig);
+let auth = getAuth();
 let signup = document.getElementById("signup");
 let errorContainer = document.getElementById('error-message');
 
@@ -76,29 +94,15 @@ function validateEmail(email, errorContainer) {
  * @param {string} password - The password entered by the user.
  * @param {HTMLElement} errorContainer - The container to display error messages.
  */
-async function handleFormSubmission(name, email, password, repeated_password, errorContainer, path = "auth/registration/") {
-    const username = name.split(' ').join('').toLowerCase();
-    const data = {
-        username: username,  // Benutzername aus E-Mail generieren
-        email: email,
-        password: password,
-        repeated_password: repeated_password
-    };
+function handleFormSubmission(email, password, errorContainer) {
+    createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            window.location.href = "index.html";
+            handleLogout();
+        })
+        .catch((error) => {
 
-    try {
-        let response = await fetch(BASE_URL + path, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
         });
-        let responseToJson = await response.json();
-        window.location.href = "index.html";
-        return responseToJson;
-    } catch (error) {
-
-    }
 };
 
 /**
@@ -127,18 +131,18 @@ signup.addEventListener('click', function (event) {
 
     let email = document.getElementById("email").value;
     let password = document.getElementById("password").value;
-    let repeated_password = document.getElementById("confirmpassword").value;
+    let confirmPassword = document.getElementById("confirmpassword").value;
     let privacyCheckbox = document.getElementById("checkbox-privacy");
-    let name = document.getElementById('name').value.trim();
+    let nameValue = document.getElementById('name').value.trim();
 
     errorContainer.innerHTML = '';
     errorContainer.style.display = 'none';
-    if (!validateName(name, errorContainer)) return;
+    if (!validateName(nameValue, errorContainer)) return;
     if (!validateEmail(email, errorContainer)) return;
-    if (!validatePasswords(password, repeated_password, errorContainer)) return;
+    if (!validatePasswords(password, confirmPassword, errorContainer)) return;
     if (!validatePrivacyCheckbox(privacyCheckbox, errorContainer)) return;
 
-    handleFormSubmission(name, email, password, repeated_password, errorContainer);
+    handleFormSubmission(email, password, errorContainer);
     handleSubmit();
 });
 
@@ -149,13 +153,9 @@ signup.addEventListener('click', function (event) {
  * @param {Object} data - The data to be sent.
  * @returns {Promise<Object>} - The server's response as JSON.
  */
-async function postData(path = "names/", name, email) {
-    const data = {
-        name: name,
-        email: email,
-    };
+async function postData(path = "names", data = {}) {
     try {
-        let response = await fetch(BASE_URL + path, {
+        let response = await fetch(BASE_URL + path + ".json", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -173,9 +173,9 @@ async function postData(path = "names/", name, email) {
  * Adds a new name to the array under "names" and sends the data to the server.
  * @param {Object} newName - The new name object to be added.
  */
-async function addName(name, email) {
+async function addName(newName) {
     try {
-        let result = await postData('names/', name, email);
+        let result = await postData('names', newName);
 
     } catch (error) {
 
@@ -189,8 +189,13 @@ async function addName(name, email) {
  * and adds it using the addName function.
  */
 function handleSubmit() {
+
     let name = document.getElementById('name').value;
     let email = document.getElementById('email').value;
 
-    addName(name, email)
+    let newName = {
+        name: name,
+        email: email,
+    };
+    addName(newName)
 };

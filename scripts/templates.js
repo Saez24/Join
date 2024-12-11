@@ -1,4 +1,4 @@
-// const BASE_URL = "https://remotestorage-b0ea0-default-rtdb.europe-west1.firebasedatabase.app/"
+window.onload = () => getNames();
 const BASE_URL = "http://127.0.0.1:8000/api/"
 let currentTaskId = null;
 let names
@@ -121,7 +121,7 @@ function showSubmenu() {
     }
 }
 
-async function getNames(path = "names/") {
+async function getNames(path = "auth/users/") {
     try {
         const response = await fetch(BASE_URL + path);
         if (!response.ok) {
