@@ -167,29 +167,46 @@ async function getCategories(path = "categories/") {
         console.error("Error fetching data:", error);
         return null;
     }
-
-
 }
 
 async function fetchData(path = "tasks") {
     try {
-        const response = await fetch(BASE_URL + path); // Keine .json-Endung hinzufügen
+        const response = await fetch(BASE_URL + path);
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        const data = await response.json();
-        console.log(data);
-        await getNames();
-
-        // Prüfen, ob die API-Daten ein Array sind
-        if (Array.isArray(data)) {
-            return data; // Direkt zurückgeben, da die API-Daten schon ein Array sind
-        } else {
-            throw new Error("Invalid data format: Expected an array.");
+        const tasks = await response.json();
+        const usersData = await getNames();
+        if (!usersData || !Array.isArray(usersData.names)) {
+            throw new Error("Benutzerinformationen konnten nicht abgerufen werden.");
         }
+
+        // Array für Tasks mit ihren zugewiesenen Benutzernamen und HTML
+        const tasksWithNames = await Promise.all(tasks.map(async (task) => {
+            if (Array.isArray(task.assignto)) {
+                // Namen der zugewiesenen Benutzer holen
+                const assignedNames = task.assignto.map(userId => {
+                    const user = usersData.names.find(u => u.id === userId);
+                    return user ? `${user.first_name} ${user.last_name}` : null;
+                }).filter(name => name !== null);
+
+                // HTML für die zugewiesenen Namen generieren (wird korrekt gewartet)
+                const assignedNamesHTML = await generateHTMLForTask(task.id, assignedNames);
+
+                // Task mit den zugewiesenen Namen und HTML zurückgeben
+                return {
+                    ...task,
+                    assignedNames,
+                    assignedNamesHTML
+                };
+            }
+            return task;
+        }));
+
+        return tasksWithNames; // Tasks mit hinzugefügten assignedNames und assignedNamesHTML
     } catch (error) {
-        console.error("Error fetching tasks:", error);
+        console.error("Fehler beim Abrufen der Tasks:", error);
         return [];
     }
 }

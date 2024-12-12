@@ -1,3 +1,4 @@
+document.addEventListener('DOMContentLoaded', () => loadAddTaskContent());
 /**
  * Opens the dialog by removing the 'd_none' class and ensures CSS and content are loaded.
  */

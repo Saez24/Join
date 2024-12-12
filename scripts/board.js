@@ -1,5 +1,3 @@
-let assignedNamesHTMLCache = new Map();
-
 /**
  * Generates a random color excluding white.
  * 
@@ -14,12 +12,9 @@ function generateRandomColor() {
     return randomColor;
 };
 
-function renderAssignedNames(task) {
-    let html = generateAssignedNamesHTML(task.assignto);
-    // console.log("Rendered Assigned Names HTML:", html);
-    return html;
+async function generateHTMLForTask(taskId, assignedNames) {
+    return generateAssignedNamesHTML(taskId, assignedNames);
 }
-
 
 /**
  * Generates HTML for assigned names with a 'Plus' button for overflow.
@@ -28,29 +23,19 @@ function renderAssignedNames(task) {
  * @param {string[]} assignedNames - An array of names assigned to a task.
  * @returns {string} HTML string representing the assigned names.
  */
-async function generateAssignedNamesHTML(assignedIds) {
-    // Überprüfen, ob HTML für diese IDs bereits im Cache ist
-    const key = assignedIds.join(',');
-    if (assignedNamesHTMLCache.has(key)) {
-        return assignedNamesHTMLCache.get(key);
+function generateAssignedNamesHTML(taskId, assignedNames) {
+    if (!Array.isArray(assignedNames) || assignedNames.length === 0) {
+        console.warn(`assignedNames ist ungültig für Task ${taskId}:`, assignedNames);
+        return '';
     }
 
-    // Generiere das HTML, wenn es nicht im Cache ist
     let MAX_NAMES_DISPLAYED = 3;
-    let position = 0;
     let html = '';
 
-    const assignedNames = await getAssignedNames(assignedIds);
-
-    if (!assignedNames || assignedNames.length === 0) {
-        return ''; // Keine Namen zum Anzeigen
-    }
-
-    let overflowCount = Math.max(0, assignedNames.length - MAX_NAMES_DISPLAYED);
-
+    // Initialen-Generierung
     assignedNames.slice(0, MAX_NAMES_DISPLAYED).forEach(name => {
-        let initials = name.split(' ').map(n => n[0]).join('');
-        let randomColor = generateRandomColor();
+        const initials = name.split(' ').map(n => n[0]).join('');
+        const randomColor = generateRandomColor();
 
         html += /*html*/`
         <div class="assignedName" style="background-color: ${randomColor};">
@@ -58,44 +43,16 @@ async function generateAssignedNamesHTML(assignedIds) {
         </div>`;
     });
 
-    // console.log('Final HTML:', html);
+    // Überlauf-Logik
+    const overflowCount = Math.max(0, assignedNames.length - MAX_NAMES_DISPLAYED);
 
     if (overflowCount > 0) {
-        position += 110;
-        html += /*html*/ `
-            <div class="moreButtonBoard" style="left:${position}px">+${overflowCount}</div>`;
+        html += /*html*/`
+        <div class="moreButtonBoard">+${overflowCount}</div>`;
     }
-
-    // Speichere das HTML im Cache
-    assignedNamesHTMLCache.set(key, html);
-    // console.log('assignedNamesHTMLCache:', assignedNamesHTMLCache);
 
     return html;
 }
-
-
-async function getAssignedNames(assignedIds) {
-    try {
-        // Lade die Namen-Daten von der API
-        const { names } = await getNames(); // getNames gibt ein Objekt mit einem Array zurück
-
-        if (!names || !Array.isArray(names)) {
-            throw new Error("Names data is invalid.");
-        }
-
-        // Mappe die IDs auf die Namen, indem du nach der ID suchst
-        const assignedNames = assignedIds.map(id => {
-            const person = names.find(name => name.id === id);
-            return person ? person.name : null; // Wenn der Name nicht gefunden wird, gib null zurück
-        });
-
-        return assignedNames.filter(name => name !== null); // Filtere null-Werte raus
-    } catch (error) {
-        console.error("Error fetching assigned names:", error);
-        return [];
-    }
-}
-
 
 /**
  * Generates HTML content for displaying subtask count and progress bar.
@@ -126,26 +83,22 @@ function generateSubtaskCountHTML(subtasks, isChecked, taskId) {
  * @param {Object} task - The task object.
  * @returns {string} HTML string representing the task element.
  */
-function createTaskElement(task, search) {
+async function createTaskElement(task, search) {
+    const { assignedNames, assignedNamesHTML } = task; // Direkt von der fetchData übergeben
     let taskid = task.id; // Verwende die Task-ID
-    // Warte auf das Ergebnis von renderAssignedNames
-    let assignedNamesHTML = renderAssignedNames(task);
-
-    // Der Rest des Codes bleibt gleich
     let subtaskCountHTML = generateSubtaskCountHTML(task.subtask || [], false, taskid); // Task-ID übergeben
     let priorityImage = buttonImages[task.prio] || './assets/img/prio_media.png';
     let categoryColor = CategoryColors[task.category] || { background: '#000000', color: '#FFFFFF' };
     let descriptionSection = task.description ? `<p class="descriptionBox">${task.description}</p>` : '';
 
     // Task-Element nur erstellen, wenn alle Daten verfügbar sind
-    if (shouldCreateTaskElement(task, assignedNamesHTML, search)) {
+    if (shouldCreateTaskElement(task, assignedNames, search)) {
         setTimeout(checkEmptyTaskContainers, 0);
-        return createTaskHTML(task, taskid, assignedNamesHTML, subtaskCountHTML, priorityImage, categoryColor, descriptionSection);
+        return createTaskHTML(task, taskid, assignedNames, assignedNamesHTML, subtaskCountHTML, priorityImage, categoryColor, descriptionSection);
     }
     setTimeout(checkEmptyTaskContainers, 0);
     return '';
 }
-
 
 
 /**
@@ -160,7 +113,7 @@ function createTaskElement(task, search) {
  * @param {string} descriptionSection - Optional HTML string for the task description.
  * @returns {string} HTML string representing the task element.
  */
-function createTaskHTML(task, taskid, assignedNamesHTMLCache, subtaskCountHTML, priorityImage, categoryColor, descriptionSection) {
+function createTaskHTML(task, taskid, assignedNames, assignedNamesHTML, subtaskCountHTML, priorityImage, categoryColor, descriptionSection) {
     return /*html*/`
         <div id="${taskid}" draggable="true" ondragstart="startDragging('${taskid}')" class="toDoBox" onclick="showPopup('${taskid}')">
             <div class="taskHeader">
@@ -178,7 +131,7 @@ function createTaskHTML(task, taskid, assignedNamesHTMLCache, subtaskCountHTML, 
             ${descriptionSection}
             ${subtaskCountHTML} <!-- Insert subtask count HTML here -->
             <div class="nameSection">
-                ${assignedNamesHTMLCache}
+                ${assignedNamesHTML}
                 <div class="prioImgContainer">
                     <img class="prioImg" src="${priorityImage}" alt="Priority">
                 </div>
@@ -194,7 +147,7 @@ function createTaskHTML(task, taskid, assignedNamesHTMLCache, subtaskCountHTML, 
  * @param {Object[]} tasks - An array of task objects.
  * @returns {Object} An object containing categorized tasks as HTML strings.
  */
-function categorizeTasks(tasks, search) {
+async function categorizeTasks(tasks, search) {
     let categorizedTasks = {
         todo: '',
         inprogress: '',
@@ -202,9 +155,8 @@ function categorizeTasks(tasks, search) {
         done: ''
     };
 
-    tasks.forEach(task => {
-        let taskHTML = createTaskElement(task, search);
-
+    for (const task of tasks) {
+        let taskHTML = await createTaskElement(task, search);
         switch (task.status) {
             case 'todo':
                 categorizedTasks.todo += taskHTML;
@@ -221,10 +173,11 @@ function categorizeTasks(tasks, search) {
             default:
                 console.warn(`Unknown task status: ${task.status}`);
         }
-    });
+    }
 
     return categorizedTasks;
-};
+}
+
 
 /**
  * Inserts categorized tasks into the DOM.
@@ -252,7 +205,7 @@ function insertTasksIntoDOM(categorizedTasks) {
 async function displayTasks(search) {
     try {
         let tasks = await fetchData();
-        let categorizedTasks = categorizeTasks(tasks, search);
+        let categorizedTasks = await categorizeTasks(tasks, search);
         insertTasksIntoDOM(categorizedTasks, search);
     } catch (error) {
         console.error('Error fetching and displaying tasks:', error);
@@ -288,7 +241,7 @@ function extractTaskData(selectedTask) {
  * @returns {Object} HTML content for task details.
  */
 function generateHTMLContent(assignto, subtasks, taskId) {
-    const assignedNamesHTML = generateAssignedNamesHTML(assignto);
+
 
 
     const assigntoHTML = assignto.map(name => ``).join('');
@@ -313,7 +266,7 @@ function generateHTMLContent(assignto, subtasks, taskId) {
         </div>
     `).join('');
 
-    return { assignedNamesHTML, assigntoHTML, assignedNamesHTMLSeparated, subtaskHTML };
+    return { assigntoHTML, assignedNamesHTMLSeparated, subtaskHTML };
 
 };
 
@@ -415,18 +368,29 @@ function searchTask() {
     }
 };
 
-function shouldCreateTaskElement(task, assignedNamesHTML, search) {
+function shouldCreateTaskElement(task, assignedNames, search) {
     if (activeSearch) {
-        return checkSearchInput(task, assignedNamesHTML, search);
+        // Wenn aktive Suche aktiv ist, überprüfe die Suchabfrage
+        return checkSearchInput(task, assignedNames, search);
     }
-    return true;
-};
 
-function checkSearchInput(task, assignedNamesHTML, search) {
-    return (assignedNamesHTML?.toLowerCase() ?? '').includes(search) ||
-        (task.description?.toLowerCase() ?? '').includes(search) ||
-        (task.title?.toLowerCase() ?? '').includes(search);
-};
+    // Wenn keine Suche aktiv ist, sicherstellen, dass die assignedNamesHTML nicht leer ist
+    return assignedNames && assignedNames.length > 0;
+}
+
+
+function checkSearchInput(task, assignedNames, search) {
+    const searchLower = (search ?? '').toLowerCase().trim(); // Suchbegriff in Kleinbuchstaben und ohne führende/nachfolgende Leerzeichen
+    if (!searchLower) return false; // Wenn der Suchbegriff leer ist, nichts suchen
+
+    // Überprüfe die Felder des Tasks
+    return (
+        (assignedNames?.toLowerCase() ?? '').includes(searchLower) ||
+        (task.description?.toLowerCase() ?? '').includes(searchLower) ||
+        (task.title?.toLowerCase() ?? '').includes(searchLower)
+    );
+}
+
 
 function addEmptyMessage(container, text) {
     if (container.children.length === 0) {

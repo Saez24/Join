@@ -1,3 +1,5 @@
+document.addEventListener('DOMContentLoaded', () => addTaskLoadNames());
+
 /**
  * Prevents event propagation when clicking on the background.
  * 
@@ -17,7 +19,7 @@ async function addTaskLoadNames() {
 
         // Überprüfen, ob sowohl names als auch categories verfügbar sind
         if (data && data.names && categories && categories.categories) {
-            const sortedKeys = Object.keys(data.names).sort(); // Namen nach Schlüssel sortieren
+            const sortedKeys = data.names.map(n => n.id).sort(); // Namen nach Schlüssel sortieren
             renderAddTaskNames(sortedKeys, data.names); // Namen rendern
             renderAddTaskCategories(categories.categories); // Kategorien rendern
             mediumButton(); // Falls erforderlich
@@ -84,18 +86,23 @@ function renderNamesHTML(sortedKeys, names) {
     let namesHTML = '';
     let id = 0;
 
-    for (let key of sortedKeys) {
-        if (names.hasOwnProperty(key)) {
-            let nameObj = names[key];
-            let name = nameObj.name;
-            let nameParts = name.split(' ');
-            let firstInitial = nameParts[0].charAt(0).toUpperCase();
-            let lastInitial = nameParts.length > 1 ? nameParts[1].charAt(0).toUpperCase() : '';
-            namesHTML += generateNameHTML(key, name, firstInitial, lastInitial, id++);
+    if (Array.isArray(names)) {
+        for (let key of sortedKeys) {
+            let nameObj = names.find(n => n.id === key);
+            if (nameObj) {
+                let firstInitial = nameObj.first_name.charAt(0).toUpperCase();
+                let lastInitial = nameObj.last_name.charAt(0).toUpperCase();
+                let fullName = `${nameObj.first_name} ${nameObj.last_name}`;
+                namesHTML += generateNameHTML(key, fullName, firstInitial, lastInitial, id++);
+            }
         }
+    } else {
+        console.warn("Namen ist kein Array:", names);
     }
+
     return namesHTML;
 };
+
 
 /**
  * Renders names HTML to the DOM.

@@ -142,11 +142,8 @@ async function getNames(path = "auth/users/") {
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-
         // API-Daten als JSON parsen
         const data = await response.json();
-        console.log(data);
-
 
         // Prüfen, ob die API ein Array zurückgibt
         if (Array.isArray(data)) {
