@@ -17,7 +17,7 @@ async function createTask() {
         status: 'todo'
     };
 
-    await postData("tasks", taskData);
+    await postData("tasks/", taskData);
     clearContent();
     showSuccessfullTaskCreation();
     setTimeout(() => {
@@ -110,16 +110,26 @@ function getAssignedTo() {
 
     assignedToCheckboxes.forEach((checkbox) => {
         let idParts = checkbox.id.split('_');
+        console.log(idParts);
+
 
         if (idParts.length >= 3) {
             let nameSpan = document.getElementById(`assignname_${idParts[1]}_${idParts.slice(2).join('_')}`);
+            console.log(nameSpan);
+
             if (nameSpan) {
                 assignedTo.push(nameSpan.innerText.trim());
+                console.log(assignedTo);
+
             }
         } else if (idParts.length === 2) {
-            let nameSpan = document.getElementById(`assignname_${idParts[1]}`);
-            if (nameSpan) {
-                assignedTo.push(nameSpan.innerText.trim());
+            console.log(idParts);
+
+            // let nameSpan = document.getElementById(`assignname_${idParts[1]}`);
+            // console.log(nameSpan);
+
+            if (idParts) {
+                assignedTo.push(idParts[1]);
             }
         }
     });
@@ -136,8 +146,8 @@ function getSubtasks() {
     let subtasks = [];
     subtasksElements.forEach((subtask) => {
         subtasks.push({
-            Boolean: false,
-            Titel: subtask.innerText
+            completed: false,
+            name: subtask.innerText
         });
     });
     return subtasks;
@@ -149,8 +159,10 @@ function getSubtasks() {
  * @param {Object} data - The task data to be sent.
  * @returns {Promise<void>} A promise that resolves once the data is sent.
  */
-async function postData(path = "tasks", data = {}) {
-    let response = await fetch(BASE_URL + path + ".json", {
+async function postData(path, data = {}) {
+    console.log(data);
+
+    let response = await fetch(BASE_URL + path, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

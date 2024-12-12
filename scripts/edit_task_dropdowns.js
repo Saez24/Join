@@ -5,13 +5,12 @@ async function editAddTaskLoadNames() {
     try {
         const data = await getNames(); // Abrufen der Namen
         const categories = await getCategories(); // Abrufen der Kategorien
-
-        // Überprüfen, ob sowohl names als auch categories verfügbar sind
         if (data && data.names && categories && categories.categories) {
-            const sortedKeys = Object.keys(data.names).sort(); // Namen nach Schlüssel sortieren
-            editRenderAddTaskNames(sortedKeys, data.names); // Namen rendern
-            editRenderAddTaskCategories(categories.categories); // Kategorien rendern
-
+            const sortedKeys = Object.keys(data.names).sort();
+            editRenderAddTaskNames(sortedKeys, data.names);
+            editRenderAddTaskCategories(categories.categories);
+            const assignedNames = getAssignedToNames(data.names);
+            renderEditAssignTo(assignedNames);
         } else {
             console.error("Missing names or categories data in the response.");
         }
@@ -20,52 +19,58 @@ async function editAddTaskLoadNames() {
     }
 };
 
+
+function getAssignedToNames(names) {
+    if (Array.isArray(names)) {
+        return names;
+    } else {
+        console.error("Names data is missing or invalid", names);
+        return [];
+    }
+}
+
 /**
  * Renders the edit-selectedAssignTo container with buttons representing the assigned names.
  * @param {Object} task - The task object containing assigned names.
  */
-function renderEditAssignTo(task) {
+function renderEditAssignTo(names) {
     let assignToContainer = document.getElementById('edit-selectedAssignTo');
-    assignToContainer.innerHTML = ''; // Clear previous content
+    assignToContainer.innerHTML = ''; // Vorherigen Inhalt löschen
 
     let count = 0;
     let position = 0;
 
-    let assignedToList = task.assignedto || task.assignto; // Überprüfen, welche Eigenschaft existiert
-    if (!Array.isArray(assignedToList)) {
-        return;
-    }
+    // Prüfen, ob `names` ein Array ist
+    if (Array.isArray(names)) {
+        names.forEach(nameObj => {
+            if (count < 3 && nameObj) {
+                let firstInitial = nameObj.first_name.charAt(0).toUpperCase();
+                let lastInitial = nameObj.last_name.charAt(0).toUpperCase();
+                let fullName = `${nameObj.first_name} ${nameObj.last_name}`;
+                let randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
 
-    assignedToList.forEach((name) => {
-        if (count < 3) {
-            let nameParts = name.split(' ');
-            let firstInitial = nameParts[0].charAt(0).toUpperCase();
-            let lastInitial = nameParts.length > 1 ? nameParts[1].charAt(0).toUpperCase() : '';
-            let randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
+                let button = document.createElement('button');
+                button.name = fullName;
+                button.classList.add('shortname');
+                button.style.backgroundColor = randomColor;
+                button.innerHTML = `<span>${firstInitial}${lastInitial}</span>`;
+                assignToContainer.appendChild(button);
 
-            let button = document.createElement('button');
-            button.name = name; // Set button id to name
-            button.classList.add('shortname');
-            button.style.backgroundColor = randomColor;
-            button.innerHTML = `<span>${firstInitial}${lastInitial}</span>`;
-            assignToContainer.appendChild(button);
+                count++;
+            }
+        });
 
-            position += 0; // Adjust this value to control the overlap
-            count++;
+        // Überlauf-Button anzeigen, falls mehr als 3 Namen vorhanden sind
+        if (names.length > 3) {
+            let moreButton = editAddMoreButton(names.length - 3, position);
+            assignToContainer.appendChild(moreButton);
         }
-    });
-
-    if (assignedToList.length > 3) {
-        let moreButton = editAddMoreButton(assignedToList.length - 3, position);
-        assignToContainer.appendChild(moreButton);
-    }
-
-    // Adjust container display based on count
-    if (count > 0) {
-        assignToContainer.style.display = 'inline-block';
     } else {
-        assignToContainer.style.display = 'none';
+        console.warn("Namen ist kein Array:", names);
     }
+
+    // Container sichtbar machen, falls Namen vorhanden sind
+    assignToContainer.style.display = count > 0 ? 'inline-block' : 'none';
 }
 
 /**
@@ -109,15 +114,18 @@ function editRenderNamesHTML(sortedKeys, names) {
     let namesHTML = '';
     let id = 0;
 
-    for (let key of sortedKeys) {
-        if (names.hasOwnProperty(key)) {
-            let nameObj = names[key];
-            let name = nameObj.name;
-            let nameParts = name.split(' ');
-            let firstInitial = nameParts[0].charAt(0).toUpperCase();
-            let lastInitial = nameParts.length > 1 ? nameParts[1].charAt(0).toUpperCase() : '';
-            namesHTML += editGenerateNameHTML(key, name, firstInitial, lastInitial, id++);
+    if (Array.isArray(names)) {
+        for (let key of sortedKeys) {
+            let nameObj = names.find(n => n.id === key);
+            if (nameObj) {
+                let firstInitial = nameObj.first_name.charAt(0).toUpperCase();
+                let lastInitial = nameObj.last_name.charAt(0).toUpperCase();
+                let fullName = `${nameObj.first_name} ${nameObj.last_name}`;
+                namesHTML += editGenerateNameHTML(key, fullName, firstInitial, lastInitial, id++);
+            }
         }
+    } else {
+        console.warn("Namen ist kein Array:", names);
     }
     return namesHTML;
 };
@@ -296,7 +304,7 @@ function editRenderAddTaskCategories(categories) {
             let categoryId = categoryKey;
             categoryContainer.innerHTML += /*html*/ `
             <div class="dropdown_selection" onclick="editDropdownSelectCategory(this)">
-                <label class="label" id="${categoryId}">${category.task}
+                <label class="label" id="${categoryId}">${category.name}
                 <input class="checkbox" type="checkbox" id="edit-category_${categoryId}"></label>
             </div>
             `;

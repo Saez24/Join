@@ -84,6 +84,7 @@ function generateSubtaskCountHTML(subtasks, isChecked, taskId) {
  * @returns {string} HTML string representing the task element.
  */
 async function createTaskElement(task, search) {
+    // await getNamesAndInitialsData();
     const { assignedNames, assignedNamesHTML } = task; // Direkt von der fetchData übergeben
     let taskid = task.id; // Verwende die Task-ID
     let subtaskCountHTML = generateSubtaskCountHTML(task.subtask || [], false, taskid); // Task-ID übergeben
@@ -233,84 +234,136 @@ function extractTaskData(selectedTask) {
     return { assignto, subtask, prio, category, description, title, duedate, taskId };
 };
 
+// async function getAssignedNames(names) {
+//     const data = await getNames();
+//     if (Array.isArray(data.names)) {
+//         return data.names;
+//     } else {
+//         console.error("Names data is missing or invalid", data);
+//         return [];
+//     }
+// }
+
+// async function getNamesAndInitialsData() {
+//     const data = await getAssignedNames();
+//     const names = getNamesAndInitials(data);
+//     const taskId = '';
+//     const subtasks = [];
+//     const assignto = [];
+//     generateHTMLContent(assignto, subtasks, taskId, names);
+// }
+
+// function getNamesAndInitials(data) {
+//     return data.map(person => {
+//         const { first_name, last_name, id: personId } = person;  // Extrahieren von first_name und last_name
+//         const fullName = `${first_name} ${last_name}`;
+//         const firstInitial = first_name[0].toUpperCase();  // Erste Initiale des Vornamens
+//         const lastInitial = last_name[0].toUpperCase();   // Erste Initiale des Nachnamens
+//         const randomColor = generateRandomColor();
+
+//         return {
+//             fullName,
+//             initials: `${firstInitial}${lastInitial}`,
+//             color: randomColor,
+//             personId
+//         };
+//     });
+// }
+
+async function generateHTMLForTaskDetails(taskId, assignedNames) {
+    console.log(assignedNames);
+
+    return generateAssignedNamesHTMLDetails(taskId, assignedNames);
+}
+
+function generateAssignedNamesHTMLDetails(taskId, assignedNames) {
+    if (!Array.isArray(assignedNames) || assignedNames.length === 0) {
+        console.warn(`assignedNames ist ungültig für Task ${taskId}:`, assignedNames);
+        return '';
+    }
+
+    let assignedNamesHTMLSeparated = '';
+
+    assignedNames.forEach(name => {
+        const initials = name.split(' ').map(n => n[0]).join('');
+        const randomColor = generateRandomColor();
+
+        assignedNamesHTMLSeparated += /*html*/`
+        <div class="assignedtoDialogInitials">
+            <p class="assignedName" style="background-color: ${randomColor};">${initials}</p>
+            <p>${name}</p>
+        </div>`;
+    });
+    console.log(assignedNamesHTMLSeparated);
+
+    return { assignedNamesHTMLSeparated };
+}
+
+
 /**
  * Generates HTML content for the task details.
- * @param {Array} assignto - The list of assigned users.
- * @param {Array} subtasks - The list of subtasks.
- * @param {string} taskId - The ID of the task.
- * @returns {Object} HTML content for task details.
+ * @param {Array} names - Die Liste der Personen mit ihren Daten.
+ * @param {Array} subtasks - Die Liste der Subtasks.
+ * @param {string} taskId - Die ID der Aufgabe.
+ * @returns {Object} HTML-Inhalt für die Aufgabendetails.
  */
-function generateHTMLContent(assignto, subtasks, taskId) {
+function generateHTMLContent(assignto, subtasks, taskId, names) {
 
-
-
-    const assigntoHTML = assignto.map(name => ``).join('');
-    const generateInitialsAndNameHTML = (names) => {
-        return names.map(name => {
-            // const initials = name.split(' ').map(word => word[0]).join('');
-            const randomColor = generateRandomColor();
-            return `
-                <div class="assignedtoDialogInitials">
-                    <p class="assignedName" style="background-color: ${randomColor};"></p>
-                    <p>${name}</p>
-                </div>
-            `;
-        }).join('');
-    };
-
-    const assignedNamesHTMLSeparated = generateInitialsAndNameHTML(assignto);
-    const subtaskHTML = subtasks.map((task, index) => `
+    const subtaskHTML = subtasks.map((subtask, index) => `
         <div class="subtaskItem">
-            <input id="subtask-${index}" type="checkbox" ${task.completed ? 'checked' : ''} onchange="updateSubtaskStatus('${taskId}', ${index}, this.checked)">
-            <p>${task.title}</p>
+            <input id="subtask-${index}" type="checkbox" ${subtask.completed ? 'checked' : ''} 
+                   onchange="updateSubtaskStatus('${taskId}', ${index}, this.checked)">
+            <p>${subtask.name}</p>
         </div>
     `).join('');
 
-    return { assigntoHTML, assignedNamesHTMLSeparated, subtaskHTML };
-
-};
+    // Rückgabe des HTML-Inhalts
+    return { subtaskHTML };
+}
 
 async function updateSubtaskStatus(taskId, index, isChecked) {
-    console.log(taskId);
     try {
-        let response = await fetch(BASE_URL + "tasks/" + taskId);
-        let tasksObject = await response.json();
+        // Abrufen der aktuellen Task-Daten
+        let response = await fetch(`${BASE_URL}tasks/${taskId}/`);
+        let taskObject = await response.json();
 
-        if (tasksObject[taskId]?.subtask && tasksObject[taskId].subtask[index]) {
-            tasksObject[taskId].subtask[index].completed = isChecked;
+        // Prüfen, ob die Subtask existiert
+        if (taskObject?.subtask && taskObject.subtask[index]) {
+            // Wert umschalten
+            taskObject.subtask[index].completed = isChecked;
 
+            // Task-Daten aktualisieren
+            await fetch(`${BASE_URL}tasks/${taskId}/`, {
+                method: 'PUT',
+                body: JSON.stringify(taskObject),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Fortschrittsanzeige aktualisieren
+            const progressBarContainer = document.getElementById(`subtaskProgress_${taskId}`);
+            if (progressBarContainer) {
+                progressBarContainer.innerHTML = generateSubtaskCountHTML(taskObject.subtask, taskId);
+            }
 
         } else {
-            console.error(`Subtask with index ${index} not found for task ${taskId}`);
-            return;
+            console.error(`Subtask mit Index ${index} nicht gefunden für Task ${taskId}`);
         }
-
-        await fetch(BASE_URL + "tasks.json", {
-            method: 'PATCH',
-            body: JSON.stringify({ [taskId]: tasksObject[taskId] }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const progressBarContainer = document.getElementById(`subtaskProgress_${taskId}`);
-        if (progressBarContainer) {
-            progressBarContainer.innerHTML = generateSubtaskCountHTML(tasksObject[taskId].subtask, isChecked, taskId);
-        }
-
     } catch (error) {
-        console.error('Error updating task status:', error);
+        console.error('Fehler beim Aktualisieren des Task-Status:', error);
     }
 };
+
 
 /**
  * Processes the details of the selected task.
  * @param {Object} selectedTask - The selected task object.
  * @returns {Object} Processed task details.
  */
-async function processTaskDetails(selectedTask) {
+async function processTaskDetails(selectedTask, names) {
     const taskData = extractTaskData(selectedTask);
-    const htmlContent = generateHTMLContent(taskData.assignto, taskData.subtask, taskData.taskId);
+    const htmlContent = generateHTMLContent(taskData.assignto, taskData.subtask, taskData.taskId, names);
     return formatTaskDetails(taskData, htmlContent);
 };
 

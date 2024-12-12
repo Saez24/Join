@@ -49,6 +49,8 @@ function renderContactSummary(color, name, email, phone, uniqueId) {
 
 
 function renderContacts(data) {
+    console.log(data);
+
     const container = document.getElementById('contactForString');
     container.innerHTML = ''; // Leert den Container
 

@@ -17,7 +17,7 @@ function openDialog() {
         dialog.classList.remove('d_none');
     }, 300);
     ensureCssLoaded();
-    addTaskLoadNames();
+    // addTaskLoadNames();
     content.classList.remove('addtask-content');
     content.classList.add('addtask-content-dialog');
     clearContent();
@@ -148,6 +148,7 @@ async function renderTaskDialog(taskid, subtaskid) {
     try {
         // Alle Tasks als Array laden
         const tasks = await fetchData('tasks'); // fetchData gibt ein Array zurück
+        const data = await getNames();
         // console.log('Übergebene taskid:', taskid);
         // console.log('Alle Tasks:', tasks);
 
@@ -165,7 +166,7 @@ async function renderTaskDialog(taskid, subtaskid) {
         }
 
         // Optional: Verarbeite die Details des ausgewählten Tasks
-        const taskDetails = await processTaskDetails(selectedTask);
+        const taskDetails = await processTaskDetails(selectedTask, data.names);
 
         // Rendern der Task-Details
         renderTaskElements(taskDetails);

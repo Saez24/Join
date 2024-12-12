@@ -172,6 +172,7 @@ async function getCategories(path = "categories/") {
 async function fetchData(path = "tasks") {
     try {
         const response = await fetch(BASE_URL + path);
+
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -193,12 +194,14 @@ async function fetchData(path = "tasks") {
 
                 // HTML für die zugewiesenen Namen generieren (wird korrekt gewartet)
                 const assignedNamesHTML = await generateHTMLForTask(task.id, assignedNames);
+                const assignedNamesHTMLSeparated = await generateHTMLForTaskDetails(task.id, assignedNames);
 
                 // Task mit den zugewiesenen Namen und HTML zurückgeben
                 return {
                     ...task,
                     assignedNames,
-                    assignedNamesHTML
+                    assignedNamesHTML,
+                    assignedNamesHTMLSeparated
                 };
             }
             return task;

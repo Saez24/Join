@@ -9,8 +9,6 @@
  */
 function startDragging(id) {
     currentDraggedElement = id;
-    console.log(`Started dragging task with id: ${id}`);
-
 };
 
 /**
@@ -49,27 +47,34 @@ async function updateTaskStatus(taskId, newStatus, path = "tasks/") {
     try {
         // Fetch current tasks from Firebase
         let response = await fetch(BASE_URL + path);
-        let tasksObject = await response.json();
+        let tasksArray = await response.json();
 
-        // Find the task by id and update its status
-        if (tasksObject[taskId]) {
-            tasksObject[taskId].status = newStatus;
+        if (Array.isArray(tasksArray)) {
+            // Task im Array suchen
+            let task = tasksArray.find(task => String(task.id) === String(taskId));
 
-            // Update tasks in Firebase
-            await fetch(BASE_URL + path, {
-                method: 'PATCH',
-                body: JSON.stringify({ [taskId]: tasksObject[taskId] }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            if (task) {
+                task.status = newStatus;
+                // Update Task in Firebase
+                await fetch(`${BASE_URL}${path}${taskId}/`, {
+                    method: 'PUT',
+                    body: JSON.stringify(task),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } else {
+                console.error("Task nicht gefunden.");
+            }
         } else {
-
+            console.error("Tasks sind kein Array.");
         }
     } catch (error) {
-
+        console.error("Fehler beim Aktualisieren des Tasks:", error);
     }
 };
+
+
 
 /**
  * Adds a highlight class to an element with the given ID.

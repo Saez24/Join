@@ -70,8 +70,8 @@ function generateNameHTML(nameKey, name, firstInitial, lastInitial, id) {
     let randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
     return /*html*/ `
         <div class="dropdown_selection" onclick="dropdownSelectAssignTo(this)">
-            <button class="shortname" style="background-color: ${randomColor};"><span>${firstInitial}${lastInitial}</span></button><span id="assignname_${nameKey}_${id}">${name}</span>
-            <input class="checkbox" type="checkbox" id="assignedto_${nameKey}_${id}" data-initials="${firstInitial}${lastInitial}" data-color="${randomColor}" onchange="loadSelectedAssignTo()">
+            <button class="shortname" style="background-color: ${randomColor};"><span>${firstInitial}${lastInitial}</span></button><span id="assignname_${nameKey}">${name}</span>
+            <input class="checkbox" type="checkbox" id="assignedto_${nameKey}" data-initials="${firstInitial}${lastInitial}" data-color="${randomColor}" onchange="loadSelectedAssignTo()">
         </div>
     `;
 };

@@ -60,7 +60,7 @@ function getCategoryInput() {
  * @returns {Array<Object>} The list of subtasks.
  */
 function getSubtasks() {
-    return [...document.querySelectorAll('#edit-addsubtasks .edit-subtask-title')].map(span => ({ Titel: span.innerText }));
+    return [...document.querySelectorAll('#edit-addsubtasks .edit-subtask-title')].map(span => ({ name: span.innerText }));
 };
 
 /**
@@ -112,7 +112,7 @@ async function updateTask(taskid, updatedData) {
         console.log("Task-ID:", taskid);
         console.log("Daten:", updatedData);
         let response = await fetch(`${BASE_URL}tasks/${taskid}/`, {
-            method: "PATCH",
+            method: "PUT",
             headers: {
                 "Content-Type": "application/json",
             },

@@ -13,8 +13,6 @@ async function openDialogEdit() {
     await adjustContent();
     // Clear the active button id and reset activeButton
     if (activeButton) {
-        console.log('activeButton:', activeButton);
-
         activeButton.id = '';
         activeButton = null; // Reset activeButton
     }
@@ -120,9 +118,9 @@ function renderEditTask(task) {
         duedateInput.value = task.duedate || '';
         categoryInput.value = task.category || '';
 
-        // renderEditAssignTo(task);
         renderEditPrio(task);
-        // renderEditSubtasks(task.subtask);
+        renderEditSubtasks(task.subtask);
+
     } else {
         console.error('One or more input fields not found.');
     }
@@ -159,7 +157,7 @@ function renderEditSubtasks(subtaskData) {
             subtasksContainer.innerHTML += /*html*/`
                 
                 <div class="addedtask" id="edit-addedtask${key}">
-                    <span id="edit-subtask-title" class="edit-subtask-title">${subtask.title}</span>
+                    <span id="edit-subtask-title" class="edit-subtask-title">${subtask.name}</span>
                     <div id="edit-subtask-buttons" class="subtask-buttons">
                         <button onclick="editEditSubtask('edit-addedtask${key}')"><img src="./assets/img/edit.png" alt=""></button>
                         <img src="./assets/img/separator.png" alt="">
