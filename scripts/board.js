@@ -231,72 +231,51 @@ function findSelectedTask(tasks, taskid) {
 function extractTaskData(selectedTask) {
     const { assignto = [], subtask = [], prio, category, description, title, duedate } = selectedTask;
     const taskId = selectedTask.id;
+
     return { assignto, subtask, prio, category, description, title, duedate, taskId };
 };
 
-// async function getAssignedNames(names) {
-//     const data = await getNames();
-//     if (Array.isArray(data.names)) {
-//         return data.names;
-//     } else {
-//         console.error("Names data is missing or invalid", data);
-//         return [];
-//     }
-// }
 
-// async function getNamesAndInitialsData() {
-//     const data = await getAssignedNames();
-//     const names = getNamesAndInitials(data);
-//     const taskId = '';
-//     const subtasks = [];
-//     const assignto = [];
-//     generateHTMLContent(assignto, subtasks, taskId, names);
-// }
-
-// function getNamesAndInitials(data) {
-//     return data.map(person => {
-//         const { first_name, last_name, id: personId } = person;  // Extrahieren von first_name und last_name
-//         const fullName = `${first_name} ${last_name}`;
-//         const firstInitial = first_name[0].toUpperCase();  // Erste Initiale des Vornamens
-//         const lastInitial = last_name[0].toUpperCase();   // Erste Initiale des Nachnamens
-//         const randomColor = generateRandomColor();
-
-//         return {
-//             fullName,
-//             initials: `${firstInitial}${lastInitial}`,
-//             color: randomColor,
-//             personId
-//         };
-//     });
-// }
-
-async function generateHTMLForTaskDetails(taskId, assignedNames) {
-    console.log(assignedNames);
-
-    return generateAssignedNamesHTMLDetails(taskId, assignedNames);
+async function generateHTMLForTaskDetails(taskId, assignedNames, assignto) {
+    return generateAssignedNamesHTMLDetails(taskId, assignedNames, assignto);
 }
 
-function generateAssignedNamesHTMLDetails(taskId, assignedNames) {
+
+function generateAssignedNamesHTMLDetails(taskId, assignedNames, assignto) {
     if (!Array.isArray(assignedNames) || assignedNames.length === 0) {
         console.warn(`assignedNames ist ungültig für Task ${taskId}:`, assignedNames);
         return '';
     }
 
-    let assignedNamesHTMLSeparated = '';
+    // Stelle sicher, dass assignto ein Array ist
+    if (!Array.isArray(assignto)) {
+        console.error(`assignto für Task ${taskId} ist ungültig:`, assignto);
+        return '';
+    }
 
-    assignedNames.forEach(name => {
-        const initials = name.split(' ').map(n => n[0]).join('');
+    let assignedNamesHTML = '';
+
+    assignto.forEach(id => {
+        // Finde die Person mit der entsprechenden ID
+        const person = assignedNames.find(p => p.id === id);
+
+        if (!person) {
+            console.error(`Keine Person gefunden für ID ${id} bei Task ${taskId}`);
+            return;
+        }
+
+        const { first_name, last_name } = person;
+        const initials = `${first_name[0].toUpperCase()}${last_name[0].toUpperCase()}`;
         const randomColor = generateRandomColor();
 
-        assignedNamesHTMLSeparated += /*html*/`
+        assignedNamesHTML += /*html*/`
         <div class="assignedtoDialogInitials">
             <p class="assignedName" style="background-color: ${randomColor};">${initials}</p>
-            <p>${name}</p>
+            <p>${first_name} ${last_name}</p>
         </div>`;
     });
-    console.log(assignedNamesHTMLSeparated);
 
-    return { assignedNamesHTMLSeparated };
+    return assignedNamesHTML;  // Rückgabe des HTML-Strings
 }
 
 
@@ -364,7 +343,9 @@ async function updateSubtaskStatus(taskId, index, isChecked) {
 async function processTaskDetails(selectedTask, names) {
     const taskData = extractTaskData(selectedTask);
     const htmlContent = generateHTMLContent(taskData.assignto, taskData.subtask, taskData.taskId, names);
-    return formatTaskDetails(taskData, htmlContent);
+    const assignedNamesHTMLSeparated = await generateHTMLForTaskDetails(taskData.taskId, names, taskData.assignto);
+
+    return formatTaskDetails(taskData, htmlContent, assignedNamesHTMLSeparated);
 };
 
 /**
@@ -387,7 +368,7 @@ function generateRandomColor() {
  * @param {Object} htmlContent - The generated HTML content.
  * @returns {Object} Formatted task details.
  */
-function formatTaskDetails(taskData, htmlContent) {
+function formatTaskDetails(taskData, htmlContent, assignedNamesHTMLSeparated) {
     const { prio, category, description, title, duedate } = taskData;
     const priorityImage = buttonImages[prio] || './assets/img/prio_media.png';
     const categoryColor = CategoryColors[category] || { background: '#000000', color: '#FFFFFF' };
@@ -402,7 +383,8 @@ function formatTaskDetails(taskData, htmlContent) {
         formattedDueDate,
         prio,
         priorityImage,
-        ...htmlContent
+        ...htmlContent,
+        assignedNamesHTMLSeparated
     };
 };
 

@@ -194,14 +194,14 @@ async function fetchData(path = "tasks") {
 
                 // HTML für die zugewiesenen Namen generieren (wird korrekt gewartet)
                 const assignedNamesHTML = await generateHTMLForTask(task.id, assignedNames);
-                const assignedNamesHTMLSeparated = await generateHTMLForTaskDetails(task.id, assignedNames);
+
 
                 // Task mit den zugewiesenen Namen und HTML zurückgeben
                 return {
                     ...task,
                     assignedNames,
                     assignedNamesHTML,
-                    assignedNamesHTMLSeparated
+
                 };
             }
             return task;

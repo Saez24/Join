@@ -3,14 +3,21 @@
  */
 async function editAddTaskLoadNames() {
     try {
-        const data = await getNames(); // Abrufen der Namen
-        const categories = await getCategories(); // Abrufen der Kategorien
+        const taskid = getCurrentTaskId()
+        const [data, categories, task] = await Promise.all([
+            getNames(),
+            getCategories(),
+            fetchTaskData(taskid),
+        ]);
         if (data && data.names && categories && categories.categories) {
-            const sortedKeys = Object.keys(data.names).sort();
-            editRenderAddTaskNames(sortedKeys, data.names);
+            const sortedKeys = data.names.map(n => n.id).sort();
+            editRenderAddTaskNames(sortedKeys, data.names, task.assignto);
             editRenderAddTaskCategories(categories.categories);
             const assignedNames = getAssignedToNames(data.names);
-            renderEditAssignTo(assignedNames);
+            const currentTask = renderCurrentTask(task.assignto)
+            const assignedNamesToCheckbox = editLoadSelectedAssignTo(task.assignto)
+            renderEditAssignTo(assignedNames, currentTask);
+
         } else {
             console.error("Missing names or categories data in the response.");
         }
@@ -18,6 +25,10 @@ async function editAddTaskLoadNames() {
         console.error("Error fetching data:", error);
     }
 };
+
+function renderCurrentTask(task) {
+    return task
+}
 
 
 function getAssignedToNames(names) {
@@ -33,7 +44,7 @@ function getAssignedToNames(names) {
  * Renders the edit-selectedAssignTo container with buttons representing the assigned names.
  * @param {Object} task - The task object containing assigned names.
  */
-function renderEditAssignTo(names) {
+function renderEditAssignTo(names, sortedKeys) {
     let assignToContainer = document.getElementById('edit-selectedAssignTo');
     assignToContainer.innerHTML = ''; // Vorherigen Inhalt löschen
 
@@ -42,23 +53,22 @@ function renderEditAssignTo(names) {
 
     // Prüfen, ob `names` ein Array ist
     if (Array.isArray(names)) {
-        names.forEach(nameObj => {
-            if (count < 3 && nameObj) {
+        for (let key of sortedKeys) {
+            let nameObj = names.find(n => n.id === key);
+            if (nameObj) {
                 let firstInitial = nameObj.first_name.charAt(0).toUpperCase();
                 let lastInitial = nameObj.last_name.charAt(0).toUpperCase();
                 let fullName = `${nameObj.first_name} ${nameObj.last_name}`;
                 let randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
-
                 let button = document.createElement('button');
                 button.name = fullName;
                 button.classList.add('shortname');
                 button.style.backgroundColor = randomColor;
                 button.innerHTML = `<span>${firstInitial}${lastInitial}</span>`;
                 assignToContainer.appendChild(button);
-
                 count++;
             }
-        });
+        };
 
         // Überlauf-Button anzeigen, falls mehr als 3 Namen vorhanden sind
         if (names.length > 3) {
@@ -110,7 +120,8 @@ function handleCheckboxChange(checkbox) {
  * @param {Object} names - The object containing the names.
  * @returns {string} The generated HTML for the names.
  */
-function editRenderNamesHTML(sortedKeys, names) {
+function editRenderNamesHTML(sortedKeys, names, assignedTo) {
+
     let namesHTML = '';
     let id = 0;
 
@@ -121,7 +132,7 @@ function editRenderNamesHTML(sortedKeys, names) {
                 let firstInitial = nameObj.first_name.charAt(0).toUpperCase();
                 let lastInitial = nameObj.last_name.charAt(0).toUpperCase();
                 let fullName = `${nameObj.first_name} ${nameObj.last_name}`;
-                namesHTML += editGenerateNameHTML(key, fullName, firstInitial, lastInitial, id++);
+                namesHTML += editGenerateNameHTML(key, fullName, firstInitial, lastInitial, id++, assignedTo);
             }
         }
     } else {
@@ -146,8 +157,8 @@ function editRenderNamesToDOM(namesHTML) {
  * @param {Array} sortedKeys - The sorted array of name keys.
  * @param {Object} names - An object containing names.
  */
-function editRenderAddTaskNames(sortedKeys, names) {
-    let namesHTML = editRenderNamesHTML(sortedKeys, names);
+function editRenderAddTaskNames(sortedKeys, names, assignedTo) {
+    let namesHTML = editRenderNamesHTML(sortedKeys, names, assignedTo);
     editRenderNamesToDOM(namesHTML);
 };
 
@@ -156,6 +167,7 @@ function editRenderAddTaskNames(sortedKeys, names) {
  * If the container is currently visible, hides it; otherwise, shows it.
  */
 function editSelectAssignTo() {
+
     let assignToContainer = document.getElementById('edit-assignedto');
     let assignToInput = document.getElementById('edit-assignedtoinput');
     if (assignToContainer.style.display === 'block') {
@@ -184,35 +196,46 @@ function editCloseAssignTo() {
  * This function goes through all checkboxes with the class "checkbox" and, if checked,
  * creates a button with the initials and color associated with the checkbox.
  */
-function editLoadSelectedAssignTo() {
+function editLoadSelectedAssignTo(sortedKeys) {
+    console.log(sortedKeys);
+
     let selectedAssignToDiv = document.getElementById("edit-selectedAssignTo");
     let checkboxes = document.querySelectorAll("#edit-assignedto .checkbox");
-    let buttonContainer = document.getElementById("edit-selectedAssignTo")
+    let buttonContainer = document.getElementById("edit-selectedAssignTo");
 
     selectedAssignToDiv.innerHTML = '';
     let position = 0;
     let count = 0;
 
     checkboxes.forEach((checkbox, index) => {
-        if (checkbox.checked) {
+        // Wenn die Checkbox-ID (oder Value) in sortedKeys enthalten ist, setze sie auf checked
+        if (sortedKeys.includes(checkbox.value)) {
+            checkbox.checked = true;
             count++;
+            console.log(sortedKeys, checkbox.value, checkbox.checked);
+
+
             if (count <= 3) {
                 let button = editCreateButton(checkbox, position);
                 selectedAssignToDiv.appendChild(button);
                 position += 12;
-                buttonContainer.style.display = 'inline-block'
+                buttonContainer.style.display = 'inline-block';
             }
         }
     });
 
+    // Wenn mehr als 3 Checkboxen ausgewählt sind, füge einen "Mehr"-Button hinzu
     if (count > 3) {
         let moreButton = editAddMoreButton(count - 3, position);
         selectedAssignToDiv.appendChild(moreButton);
     }
+
+    // Wenn keine Checkboxen ausgewählt sind, verstecke den Container
     if (count === 0) {
-        buttonContainer.style.display = 'none'
+        buttonContainer.style.display = 'none';
     }
-};
+}
+
 
 /**
  * Toggles the "selected_dropdown" class on the given element and toggles the associated checkbox state.

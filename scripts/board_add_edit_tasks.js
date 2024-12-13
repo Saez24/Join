@@ -232,7 +232,7 @@ function updateTaskDetails(title, description, formattedDueDate, prio, priorityI
     const priority = document.getElementById('Priority');
     const priorityImg = document.getElementById('PriorityImg');
     const assignedInitials = document.getElementById('assignedInitials');
-    const assignedName = document.getElementById('assignedName');
+    // const assignedName = document.getElementById('assignedName');
     const subtaskContainer = document.getElementById('subtaskDialogText');
 
     headline.innerText = title;
@@ -240,7 +240,7 @@ function updateTaskDetails(title, description, formattedDueDate, prio, priorityI
     priority.innerText = prio;
     priorityImg.src = priorityImage;
     assignedInitials.innerHTML = assignedNamesHTMLSeparated;
-    assignedName.innerHTML = assigntoHTML;
+    // assignedName.innerHTML = assigntoHTML;
     subtaskContainer.innerHTML = subtaskHTML;
 
     // Check if description is provided before setting its value

@@ -121,6 +121,7 @@ function renderEditTask(task) {
         renderEditPrio(task);
         renderEditSubtasks(task.subtask);
 
+
     } else {
         console.error('One or more input fields not found.');
     }
