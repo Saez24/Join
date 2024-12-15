@@ -45,27 +45,32 @@ function closeOverlayWhenGreyAreaWasClicked() {
 }
 
 
-async function addContactData(path = "", data = {}) {
-    let response = await fetch(BASE_URL + path + ".json", {
+async function addContactData(path = "auth/users/", data = {}) {
+    let response = await fetch(BASE_URL + path, {
         method: "POST",
-        header: {
+        headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify(data)
     });
+    console.log(data);
+
     return responseToJson = await response.json();
 }
 
 async function createContact() {
     let email = document.getElementById('contact-email').value;
     let name = document.getElementById('contact-name').value;
-    let phonenumber = document.getElementById('contact-phone').value;
+    let phone = document.getElementById('contact-phone').value;
+    let firstName = name.split(' ')[0];
+    let lastName = name.split(' ')[1];
+    let username = name.split(' ').join('').toLowerCase();
 
-    if (validateContactInputs(email, name, phonenumber)) {
+    if (validateContactInputs(email, name, phone)) {
         slideOutToRight();
         showSuccessfullContactCreation();
 
-        await addContactData('names', { 'email': email, 'name': name, 'phonenumber': phonenumber });
+        await addContactData('auth/users/', { 'email': email, 'first_name': firstName, 'last_name': lastName, 'phone': phone, 'username': username });
         await getNames();
         searchAndRenderLastAddedContact(name);
     } else {
@@ -171,10 +176,10 @@ function groupByInitial(contacts) {
 
 
 // Beispiel für getInitials
-function getInitials(firstName, lastName) {
-    const firstInitial = firstName.charAt(0).toUpperCase();
-    const lastInitial = lastName.charAt(0).toUpperCase();
-    return `${firstInitial}${lastInitial}`;
+function getInitials(name) {
+    if (!name) return '';
+    let initials = name.split(' ').map(part => part.charAt(0)).join('');
+    return initials.toUpperCase();
 }
 
 
@@ -285,11 +290,14 @@ async function editContact(event) {
     let name = document.getElementById('edit-contact-name').value;
     let email = document.getElementById('edit-contact-email').value;
     let phone = document.getElementById('edit-contact-phone').value;
+    let firstName = name.split(' ')[0];
+    let lastName = name.split(' ')[1];
+    let username = name.split(' ').join('').toLowerCase();
     if (!editingContactId) {
         console.error('Keine Kontakt-ID vorhanden für das Update');
         return;
     }
-    await updateContactData(editingContactId, { email: email, name: name, phonenumber: phone });
+    await updateContactData(editingContactId, { 'email': email, 'first_name': firstName, 'last_name': lastName, 'phone': phone, 'username': username });
     editSlideOutToRight();
     await getNames();
     searchAndRenderLastAddedContact(name);
@@ -298,8 +306,8 @@ async function editContact(event) {
 
 async function updateContactData(id, data) {
     try {
-        let response = await fetch(`${BASE_URL}/names/${id}.json`, {
-            method: "PATCH",
+        let response = await fetch(`${BASE_URL}auth/users/${id}/`, {
+            method: "PUT",
             headers: {
                 "Content-Type": "application/json",
             },
@@ -360,7 +368,7 @@ async function deleteContact() {
     }
 
     try {
-        let response = await fetch(`${BASE_URL}/names/${contactId}.json`, {
+        let response = await fetch(`${BASE_URL}/auth/users/${contactId}`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",

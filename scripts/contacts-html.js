@@ -49,11 +49,8 @@ function renderContactSummary(color, name, email, phone, uniqueId) {
 
 
 function renderContacts(data) {
-    console.log(data);
-
     const container = document.getElementById('contactForString');
     container.innerHTML = ''; // Leert den Container
-
     // Kontakte nach Anfangsbuchstaben gruppieren
     const groupedContacts = groupByInitial(data);
 
@@ -70,7 +67,7 @@ function renderContacts(data) {
                 const randomColor = getRandomColor(); // Zufällige Farbe für Initialen
                 const initials = getInitials(contact.first_name, contact.last_name); // Initialen generieren
                 container.innerHTML += `
-                    <div class="contact-row" id="contact-${contact.id}" 
+                    <div class="contact-row" id="${contact.id}" 
                          onclick="renderContactInformation('${contact.first_name} ${contact.last_name}', '${contact.email}', '${randomColor}', '${contact.phone}', '${contact.id}')">
                         <div class="initials" style="background-color: ${randomColor}">
                             ${initials}

@@ -1,3 +1,5 @@
+let assignedTo = [];
+
 /**
  * Loads names and categories for adding a new task asynchronously when the page loads.
  */
@@ -92,15 +94,28 @@ function renderEditAssignTo(names, sortedKeys) {
  * @param {number} id - The ID for the HTML element.
  * @returns {string} The generated HTML.
  */
-function editGenerateNameHTML(nameKey, name, firstInitial, lastInitial) {
+function editGenerateNameHTML(nameKey, name, firstInitial, lastInitial, assignedTo) {
     let randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
+    let isChecked = assignedTo.includes(nameKey) ? "checked" : "";
+
     return /*html*/ `
-        <div class="dropdown_selection" onclick="editDropdownSelectAssignTo(this)">
-            <button class="shortname" style="background-color: ${randomColor};"><span>${firstInitial}${lastInitial}</span></button><span id="editassignname_${nameKey}">${name}</span>
-            <input class="checkbox" name="assignto" value="${name}" type="checkbox" id="editassignedto_${nameKey}" data-initials="${firstInitial}${lastInitial}" data-color="${randomColor}" onchange="editLoadSelectedAssignTo()">
+        <div class="dropdown_selection ${isChecked ? "selected_dropdown" : ""}" 
+            data-namekey='${JSON.stringify(nameKey)}' 
+            onclick="editDropdownSelectAssignTo(this)">
+            
+            <button class="shortname" style="background-color: ${randomColor};">
+                <span>${firstInitial}${lastInitial}</span>
+            </button>
+            <span id="editassignname_${nameKey}">${name}</span>
+            <input class="checkbox" name="assignto" value="${name}" type="checkbox" 
+                id="editassignedto_${nameKey}" 
+                data-initials="${firstInitial}${lastInitial}" 
+                data-color="${randomColor}" ${isChecked} 
+                onchange="editLoadSelectedAssignTo()">
         </div>
     `;
 }
+
 
 function handleCheckboxChange(checkbox) {
     const dropdownSelection = checkbox.closest('.dropdown_selection');
@@ -121,9 +136,7 @@ function handleCheckboxChange(checkbox) {
  * @returns {string} The generated HTML for the names.
  */
 function editRenderNamesHTML(sortedKeys, names, assignedTo) {
-
     let namesHTML = '';
-    let id = 0;
 
     if (Array.isArray(names)) {
         for (let key of sortedKeys) {
@@ -132,14 +145,17 @@ function editRenderNamesHTML(sortedKeys, names, assignedTo) {
                 let firstInitial = nameObj.first_name.charAt(0).toUpperCase();
                 let lastInitial = nameObj.last_name.charAt(0).toUpperCase();
                 let fullName = `${nameObj.first_name} ${nameObj.last_name}`;
-                namesHTML += editGenerateNameHTML(key, fullName, firstInitial, lastInitial, id++, assignedTo);
+
+                namesHTML += editGenerateNameHTML(key, fullName, firstInitial, lastInitial, assignedTo);
             }
         }
     } else {
         console.warn("Namen ist kein Array:", names);
     }
+
     return namesHTML;
-};
+}
+
 
 /**
  * Renders names HTML to the DOM.
@@ -160,7 +176,8 @@ function editRenderNamesToDOM(namesHTML) {
 function editRenderAddTaskNames(sortedKeys, names, assignedTo) {
     let namesHTML = editRenderNamesHTML(sortedKeys, names, assignedTo);
     editRenderNamesToDOM(namesHTML);
-};
+}
+
 
 /**
  * Toggles the visibility of the assign-to selection container.
@@ -191,74 +208,67 @@ function editCloseAssignTo() {
     assignToInput.style.backgroundImage = 'url(./assets/img/arrow_drop.png)';
 };
 
-/**
- * Updates the selectedAssignTo div with buttons representing the selected names.
- * This function goes through all checkboxes with the class "checkbox" and, if checked,
- * creates a button with the initials and color associated with the checkbox.
- */
-function editLoadSelectedAssignTo(sortedKeys) {
-    console.log(sortedKeys);
 
+function editLoadSelectedAssignTo() {
     let selectedAssignToDiv = document.getElementById("edit-selectedAssignTo");
     let checkboxes = document.querySelectorAll("#edit-assignedto .checkbox");
-    let buttonContainer = document.getElementById("edit-selectedAssignTo");
+    let buttonContainer = document.getElementById("edit-selectedAssignTo")
 
     selectedAssignToDiv.innerHTML = '';
     let position = 0;
     let count = 0;
 
     checkboxes.forEach((checkbox, index) => {
-        // Wenn die Checkbox-ID (oder Value) in sortedKeys enthalten ist, setze sie auf checked
-        if (sortedKeys.includes(checkbox.value)) {
-            checkbox.checked = true;
+        if (checkbox.checked) {
             count++;
-            console.log(sortedKeys, checkbox.value, checkbox.checked);
-
-
             if (count <= 3) {
                 let button = editCreateButton(checkbox, position);
                 selectedAssignToDiv.appendChild(button);
                 position += 12;
-                buttonContainer.style.display = 'inline-block';
+                buttonContainer.style.display = 'inline-block'
             }
         }
     });
 
-    // Wenn mehr als 3 Checkboxen ausgewählt sind, füge einen "Mehr"-Button hinzu
     if (count > 3) {
         let moreButton = editAddMoreButton(count - 3, position);
         selectedAssignToDiv.appendChild(moreButton);
     }
-
-    // Wenn keine Checkboxen ausgewählt sind, verstecke den Container
     if (count === 0) {
-        buttonContainer.style.display = 'none';
-    }
-}
-
-
-/**
- * Toggles the "selected_dropdown" class on the given element and toggles the associated checkbox state.
- * If the element is within the "assignedto" container, it updates the checkbox state and reloads the selected names.
- * 
- * @param {HTMLElement} element - The dropdown element that was clicked.
- */
-function editDropdownSelectAssignTo(element) {
-    element.classList.toggle("selected_dropdown");
-    if (element.closest("#edit-assignedto")) {
-        let checkbox = element.querySelector(".checkbox");
-
-        if (checkbox) {
-            checkbox.checked = !checkbox.checked;
-            editLoadSelectedAssignTo();
-        }
+        buttonContainer.style.display = 'none'
     }
 };
 
 /**
- * Creates a button for a selected checkbox.
- * @param {Element} checkbox - The checkbox element.
- * @param {number} position - The left position of the button.
+ * Diese Funktion wird beim Klick auf die Checkbox oder den Dropdown-Button ausgeführt
+ * und aktualisiert das `assignedTo`-Array und die Anzeige.
+ */
+function editDropdownSelectAssignTo(element) {
+    element.classList.toggle("selected_dropdown");
+
+    // Checkbox-Status umschalten
+    let checkbox = element.querySelector(".checkbox");
+    let nameKey = JSON.parse(element.dataset.namekey);
+
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+
+        // `assignedTo` aktualisieren: Hinzufügen oder Entfernen
+        if (checkbox.checked) {
+            if (!assignedTo.includes(nameKey)) {
+                assignedTo.push(nameKey);  // Hinzufügen
+            }
+        } else {
+            assignedTo = assignedTo.filter(key => key !== nameKey);  // Entfernen
+        }
+
+        // Die UI mit der neuen Liste der zugewiesenen Namen aktualisieren
+        editLoadSelectedAssignTo(assignedTo);
+    }
+}
+
+/**
+ * Erzeugt einen Button für eine ausgewählte Checkbox.
  */
 function editCreateButton(checkbox, position) {
     let initials = checkbox.getAttribute("data-initials");
@@ -271,7 +281,8 @@ function editCreateButton(checkbox, position) {
     button.style.left = `${position}px`;
     button.innerText = initials;
     return button;
-};
+}
+
 
 /**
  * Retrieves assigned users based on checkbox selection.
@@ -282,23 +293,16 @@ function editGetAssignedTo() {
     let assignedTo = [];
 
     assignedToCheckboxes.forEach((checkbox) => {
-        let idParts = checkbox.id.split('_');
+        let idParts = checkbox.id.split('_').slice(1);  // Entfernt "editassignedto_"
 
-        if (idParts.length >= 3) {
-            let nameSpan = document.getElementById(`editassignname_${idParts[1]}_${idParts.slice(2).join('_')}`);
-            if (nameSpan) {
-                assignedTo.push(nameSpan.innerText.trim());
-            }
-        } else if (idParts.length === 2) {
-            let nameSpan = document.getElementById(`editassignname_${idParts[1]}`);
-            if (nameSpan) {
-                assignedTo.push(nameSpan.innerText.trim());
-            }
-        }
+        // Konvertiere den ersten Teil in eine Zahl und speichere ihn
+        let numericId = isNaN(idParts[0]) ? idParts[0] : Number(idParts[0]);
+        assignedTo.push(numericId);
     });
 
     return assignedTo;
-};
+}
+
 
 /**
  * Adds a "more" button indicating the number of additional selected checkboxes.

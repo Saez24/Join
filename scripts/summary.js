@@ -63,7 +63,7 @@ async function determineTasksInBoard() {
 async function determineUrgentTasks() {
     let responseToObject = await loadData('tasks');
     for (let i = 0; i < responseToObject.length; i++) {
-        if (responseToObject[i].prio === "Urgent") {
+        if (responseToObject[i].prio === "urgent") {
             amountTasksUrgent++;
         }
     }
@@ -125,7 +125,7 @@ async function determineDeadline() {
     let responseToObject = await loadData('tasks');
 
     for (let i = 0; i < responseToObject.length; i++) {
-        if (responseToObject[i].prio === "Urgent") {
+        if (responseToObject[i].prio === "urgent") {
             let taskDueDate = new Date(responseToObject[i].duedate);
 
             if (earliestDeadline === null || taskDueDate < earliestDeadline) {
