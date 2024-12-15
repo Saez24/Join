@@ -11,6 +11,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework import viewsets
 from .serializers import UserSerializer
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import status
 
 
 class UserProfileList(viewsets.ModelViewSet):
@@ -57,53 +59,51 @@ class RegistrationView(APIView):
         return Response(data)
 
 
-class CustomLoginView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
-
-        if not email or not password:
-            return Response({"error": "E-Mail und Passwort sind erforderlich."}, status=400)
-
-        # Benutzer anhand der E-Mail-Adresse abrufen
-        try:
-            user = User.objects.get(email=email)
-            authenticated_user = authenticate(
-                username=user.username, password=password)
-
-            if authenticated_user:
-                token, created = Token.objects.get_or_create(
-                    user=authenticated_user)
-                return Response({
-                    'token': token.key,
-                    'username': authenticated_user.username,
-                    'email': authenticated_user.email
-                }, status=200)
-            else:
-                return Response({"error": "Ungültige Anmeldeinformationen."}, status=401)
-
-        except User.DoesNotExist:
-            return Response({"error": "Benutzer mit dieser E-Mail existiert nicht."}, status=404)
-
-
-# class CustomLoginView(ObtainAuthToken):
+# class CustomLoginView(APIView):
 #     permission_classes = [AllowAny]
 
 #     def post(self, request):
-#         serializer = self.serializer_class(data=request.data)
+#         username = request.data.get('username')
+#         password = request.data.get('password')
 
-#         data = {}
-#         if serializer.is_valid():
-#             user = serializer.validated_data['user']
-#             token, created = Token.objects.get_or_create(user=user)
-#             data = {
-#                 'token': token.key,
-#                 'username': user.username,
-#                 'email': user.email
-#             }
+#         if not username or not password:
+#             return Response({"error": "Username und Passwort sind erforderlich."}, status=400)
 
-#         else:
-#             data = serializer.errors
-#
+#         # Benutzer anhand der E-Mail-Adresse abrufen
+#         try:
+#             user = User.objects.get(username=username)
+#             authenticated_user = authenticate(
+#                 username=user.username, password=password)
+
+#             if authenticated_user:
+#                 token, created = Token.objects.get_or_create(
+#                     user=authenticated_user)
+#                 return Response({
+#                     'token': token.key,
+#                     'username': authenticated_user.username,
+#                     'email': authenticated_user.email
+#                 }, status=200)
+#             else:
+#                 return Response({"error": "Ungültige Anmeldeinformationen."}, status=401)
+
+#         except User.DoesNotExist:
+#             return Response({"error": "Benutzer mit dieser E-Mail existiert nicht."}, status=404)
+
+
+class CustomLoginView(ObtainAuthToken):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data, context={'request': request})
+
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key,
+                'username': user.username,
+                'email': user.email
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)

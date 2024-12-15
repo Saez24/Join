@@ -4,7 +4,8 @@ from django.db import models
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    email = models.EmailField(max_length=100, default=None)
+    phone = models.CharField(
+        max_length=15, default=None, null=True, blank=True)
 
     def __str__(self):
         return self.user.username
