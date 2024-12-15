@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from django.utils.deprecation import MiddlewareMixin
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -54,42 +55,18 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = False
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://127\.0\.0\.1:\d+$",
+    r"^http://localhost:\d+$",
+]
+
 CSRF_TRUSTED_ORIGINS = [
-
-    'http://127.0.0.1:5500',
-
-    'http://localhost:5500',
-
-    'http://192.168.188.46',
-
-    'http://127.0.0.1:4200',
-
-    'http://localhost:4200',
-
-    'http://127.0.0.1:52102',
-
-    'http://localhost:52102',
-
+    'http://127.0.0.1',
+    'http://localhost',
 ]
 
-
-CORS_ALLOWED_ORIGINS = [
-
-    'http://127.0.0.1:5500',
-
-    'http://localhost:5500',
-
-    'http://192.168.188.46',
-
-    'http://127.0.0.1:4200',
-
-    'http://localhost:4200',
-
-    'http://127.0.0.1:52102',
-
-    'http://localhost:52102',
-
-]
 
 ROOT_URLCONF = 'join.urls'
 
