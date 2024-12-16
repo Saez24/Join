@@ -26,16 +26,6 @@ class UserListView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
-    # def list(self, request, *args, **kwargs):
-    #     queryset = self.filter_queryset(self.get_queryset())
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     return Response(serializer.data)
-
-
-# class UserProfileDetail(viewsets.ModelViewSet):
-#     queryset = UserProfile.objects.all()
-#     serializer_class = UserProfileSerializer
-
 
 class RegistrationView(APIView):
     permission_classes = [AllowAny]
@@ -55,39 +45,6 @@ class RegistrationView(APIView):
         else:
             data = serializer.errors
         return Response(data)
-
-        return Response(data)
-
-
-# class CustomLoginView(APIView):
-#     permission_classes = [AllowAny]
-
-#     def post(self, request):
-#         username = request.data.get('username')
-#         password = request.data.get('password')
-
-#         if not username or not password:
-#             return Response({"error": "Username und Passwort sind erforderlich."}, status=400)
-
-#         # Benutzer anhand der E-Mail-Adresse abrufen
-#         try:
-#             user = User.objects.get(username=username)
-#             authenticated_user = authenticate(
-#                 username=user.username, password=password)
-
-#             if authenticated_user:
-#                 token, created = Token.objects.get_or_create(
-#                     user=authenticated_user)
-#                 return Response({
-#                     'token': token.key,
-#                     'username': authenticated_user.username,
-#                     'email': authenticated_user.email
-#                 }, status=200)
-#             else:
-#                 return Response({"error": "Ungültige Anmeldeinformationen."}, status=401)
-
-#         except User.DoesNotExist:
-#             return Response({"error": "Benutzer mit dieser E-Mail existiert nicht."}, status=404)
 
 
 class CustomLoginView(ObtainAuthToken):

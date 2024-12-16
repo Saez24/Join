@@ -17,7 +17,6 @@ class IsAdminForDeleteOrPatchAndReadOnly(BasePermission):
             return bool(request.user and request.user.is_superuser)
         else:
             return bool(request.user and request.user.is_staff)
-        # return super().has_object_permission(request, view, obj)
 
 
 class IsOwnerOrAdmin(BasePermission):

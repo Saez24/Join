@@ -12,5 +12,4 @@ urlpatterns = [
     path('registration/', RegistrationView.as_view(),
          name='registration'),
     path('login/', CustomLoginView.as_view(), name='login'),
-    # path('login/', obtain_auth_token, name='api_token_auth'),
 ]

@@ -44,8 +44,8 @@ class Priority(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
     class Meta:
-        verbose_name = "Prio"         # Einzelbezeichnung
-        verbose_name_plural = "Priorities"  # Mehrzahl festlegen
+        verbose_name = "Prio"
+        verbose_name_plural = "Priorities"
 
     def __str__(self):
         return self.name
@@ -61,7 +61,6 @@ class Tasks(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     title = models.CharField(max_length=100)
-    # Array von Subtasks als JSONField
     subtask = JSONField(blank=True, default=list)
 
     class Meta:
