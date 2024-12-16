@@ -47,20 +47,32 @@ class RegistrationView(APIView):
         return Response(data)
 
 
-class CustomLoginView(ObtainAuthToken):
+class CustomLoginView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(
-            data=request.data, context={'request': request})
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
 
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({
-                'token': token.key,
-                'username': user.username,
-                'email': user.email
-            }, status=status.HTTP_200_OK)
+        if not email or not password:
+            return Response({"error": "E-Mail und Passwort sind erforderlich."}, status=400)
 
-        return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+        # Benutzer anhand der E-Mail-Adresse abrufen
+        try:
+            user = User.objects.get(email=email)
+            authenticated_user = authenticate(
+                username=user.username, password=password)
+
+            if authenticated_user:
+                token, created = Token.objects.get_or_create(
+                    user=authenticated_user)
+                return Response({
+                    'token': token.key,
+                    'username': authenticated_user.username,
+                    'email': authenticated_user.email
+                }, status=200)
+            else:
+                return Response({"error": "Ungültige Anmeldeinformationen."}, status=401)
+
+        except User.DoesNotExist:
+            return Response({"error": "Benutzer mit dieser E-Mail existiert nicht."}, status=404)
