@@ -1,5 +1,5 @@
 
-const publicPages = ['index.html', 'privacy_policy.html', 'legal_notice.html', 'signup.html', 'help.html', 'contacts.html'];
+const publicPages = ['index.html', 'privacy_policy.html', 'legal_notice.html', 'signup.html', 'help.html'];
 
 /**
  * Fetches user data from the token and renders the user's name.
@@ -28,14 +28,14 @@ async function checkAuth() {
                 renderUserName(user);
             } else {
                 // Wenn kein Benutzer mit diesem Token gefunden wird, dann logout
-                // handleLogout();
+                handleLogout();
             }
         } catch (error) {
             console.error("Fehler:", error);
-            // handleLogout();
+            handleLogout();
         }
     } else {
-        // handleLogout();
+        handleLogout();
     }
 }
 

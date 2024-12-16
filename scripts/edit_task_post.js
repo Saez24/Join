@@ -99,7 +99,6 @@ async function saveUpdatedTask(taskid) {
     }
 
     await updateTask(taskid, updatedData);
-    console.log(updatedData);
 
     displayTasks();
     closeDialogEdit();
@@ -107,10 +106,6 @@ async function saveUpdatedTask(taskid) {
 
 async function updateTask(taskid, updatedData) {
     try {
-
-        console.log("Sende Anfrage zum Aktualisieren...");
-        console.log("Task-ID:", taskid);
-        console.log("Daten:", updatedData);
         let response = await fetch(`${BASE_URL}tasks/${taskid}/`, {
             method: "PUT",
             headers: {
@@ -118,8 +113,6 @@ async function updateTask(taskid, updatedData) {
             },
             body: JSON.stringify(updatedData)
         });
-
-        console.log(response);
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);

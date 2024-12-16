@@ -57,6 +57,7 @@ function renderEditAssignTo(names, sortedKeys) {
     if (Array.isArray(names)) {
         for (let key of sortedKeys) {
             let nameObj = names.find(n => n.id === key);
+
             if (nameObj) {
                 let firstInitial = nameObj.first_name.charAt(0).toUpperCase();
                 let lastInitial = nameObj.last_name.charAt(0).toUpperCase();
@@ -73,8 +74,8 @@ function renderEditAssignTo(names, sortedKeys) {
         };
 
         // Überlauf-Button anzeigen, falls mehr als 3 Namen vorhanden sind
-        if (names.length > 3) {
-            let moreButton = editAddMoreButton(names.length - 3, position);
+        if (count > 3) {
+            let moreButton = editAddMoreButton(count - 3, position);
             assignToContainer.appendChild(moreButton);
         }
     } else {
