@@ -20,6 +20,7 @@ class Names(models.Model):
     name = models.CharField(max_length=100)
     email = models.TextField(max_length=100)
     phone = models.TextField(max_length=100, blank=True)
+    inizialized = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Name"
