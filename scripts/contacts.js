@@ -368,7 +368,7 @@ async function deleteContact() {
     }
 
     try {
-        let response = await fetch(`${BASE_URL}/auth/users/${contactId}`, {
+        let response = await fetch(`${BASE_URL}auth/users/${contactId}/`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",

@@ -160,8 +160,6 @@ function getSubtasks() {
  * @returns {Promise<void>} A promise that resolves once the data is sent.
  */
 async function postData(path, data = {}) {
-    console.log(data);
-
     let response = await fetch(BASE_URL + path, {
         method: "POST",
         headers: {
@@ -181,3 +179,4 @@ function showSuccessfullTaskCreation() {
         taskCreated.classList.remove('slide-in-from-right');
     }, 1500);
 };
+

@@ -118,6 +118,15 @@ function renderAddTaskCategories(categories) {
     let categoryContainer = document.getElementById("taskcategory");
     categoryContainer.innerHTML = '';
 
+    // Prüfen, ob Kategorien verfügbar sind
+    if (Object.keys(categories).length === 0) {
+        // Standard-Kategorien vorschlagen
+        categories = {
+            1: { name: "Standard Kategorie 1" },
+            2: { name: "Standard Kategorie 2" }
+        };
+    }
+
     for (let categoryKey in categories) {
         if (categories.hasOwnProperty(categoryKey)) {
             let category = categories[categoryKey];

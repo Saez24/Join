@@ -68,6 +68,41 @@ function validateEmail(email, errorContainer) {
     return true;
 };
 
+async function checkSubmit(name, email, password, repeated_password, errorContainer) {
+    try {
+        // Benutzerliste abrufen und prüfen, ob die E-Mail bereits existiert
+        let response = await fetch(`${BASE_URL}auth/users/`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+
+        if (response.ok) {
+            let data = await response.json();
+            let userExists = false;
+
+            // Überprüfen, ob ein Benutzer mit der angegebenen E-Mail vorhanden ist
+            for (let user of data) {
+                if (user.email === email) {
+                    userExists = true;
+                    break;
+                }
+            }
+
+            if (userExists) {
+                // Wenn die E-Mail bereits existiert, Fehlermeldung anzeigen
+                errorContainer.innerHTML = 'Email already exists.';
+                errorContainer.style.display = 'block';
+            } else {
+                // Wenn die E-Mail nicht existiert, handleFormSubmission ausführen
+                await handleFormSubmission(name, email, password, repeated_password, errorContainer);
+            }
+        }
+    } catch (error) {
+        console.error('Fehler beim Abrufen der Benutzer:', error);
+    }
+}
 
 /**
  * Handles the form submission by creating a new user with email and password.
@@ -79,7 +114,7 @@ function validateEmail(email, errorContainer) {
 async function handleFormSubmission(name, email, password, repeated_password, errorContainer, path = "auth/registration/") {
     const username = name.split(' ').join('').toLowerCase();
     const data = {
-        username: username,  // Benutzername aus E-Mail generieren
+        username: username,
         email: email,
         password: password,
         repeated_password: repeated_password
@@ -93,13 +128,73 @@ async function handleFormSubmission(name, email, password, repeated_password, er
             },
             body: JSON.stringify(data)
         });
+
         let responseToJson = await response.json();
-        window.location.href = "index.html";
+        if (response.ok) {
+            const userId = await getUserIdByEmail(email);
+            if (userId) {
+                await createFirstNameLastName(userId, name, username);
+                window.location.href = "index.html";
+            } else {
+                console.error("Fehler beim Abrufen der Initialisierungsdaten.");
+            }
+        } else {
+            console.error('Benutzer konnte nicht gefunden werden.');
+        }
+
         return responseToJson;
     } catch (error) {
-
+        console.error('Fehler bei der Anfrage:', error);
     }
 };
+
+async function getUserIdByEmail(email) {
+    try {
+        let response = await fetch(`${BASE_URL}auth/users?email=${email}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+
+        if (response.ok) {
+            let data = await response.json();
+            if (data && data.length > 0) {
+                for (let user of data) {
+                    if (user.email === email) {
+
+                        return user.id;
+                    }
+                }
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error('Fehler beim Abrufen der Benutzer-ID:', error);
+        return null;
+    }
+}
+
+
+async function addFirstNameLastName(path, data) {
+    let response = await fetch(BASE_URL + path, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data)
+    });
+
+    return await response.json();
+}
+
+async function createFirstNameLastName(userId, name, username) {
+    let firstName = name.split(' ')[0];
+    let lastName = name.split(' ')[1];
+    const path = `auth/users/${userId}/`;
+
+    await addFirstNameLastName(path, { 'username': username, 'first_name': firstName, 'last_name': lastName });
+}
 
 /**
  * Validates that the privacy policy checkbox is checked.
@@ -138,49 +233,10 @@ signup.addEventListener('click', function (event) {
     if (!validatePasswords(password, repeated_password, errorContainer)) return;
     if (!validatePrivacyCheckbox(privacyCheckbox, errorContainer)) return;
 
-    handleFormSubmission(name, email, password, repeated_password, errorContainer);
+    checkSubmit(name, email, password, repeated_password, errorContainer);
     handleSubmit();
 });
 
-/**
- * Sends data to the specified path.
- * 
- * @param {string} path - The path to which the data should be sent.
- * @param {Object} data - The data to be sent.
- * @returns {Promise<Object>} - The server's response as JSON.
- */
-async function postData(path = "names/", name, email) {
-    const data = {
-        name: name,
-        email: email,
-    };
-    try {
-        let response = await fetch(BASE_URL + path, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        });
-        let responseToJson = await response.json();
-        return responseToJson;
-    } catch (error) {
-
-    }
-};
-
-/**
- * Adds a new name to the array under "names" and sends the data to the server.
- * @param {Object} newName - The new name object to be added.
- */
-async function addName(name, email) {
-    try {
-        let result = await postData('names/', name, email);
-
-    } catch (error) {
-
-    }
-};
 
 /**
  * Handles the submission of the form.
@@ -188,9 +244,108 @@ async function addName(name, email) {
  * This function reads values from the input fields, creates a new name object,
  * and adds it using the addName function.
  */
-function handleSubmit() {
-    let name = document.getElementById('name').value;
-    let email = document.getElementById('email').value;
+let isInitialized = false;  // Initialisierungsstatus
 
-    addName(name, email)
-};
+async function handleSubmit() {
+    await checkInitialization();
+}
+
+async function initializeStandardData() {
+    await Promise.all([
+        createStandardCategories(),
+        createStandardTaskStatus(),
+        createPriority()
+    ]);
+}
+
+async function checkInitialization() {
+    try {
+        let response = await fetch(`${BASE_URL}categories/`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+
+        if (response.ok) {
+            let data = await response.json();
+            // Prüfen, ob das Array "categories" weniger als 1 Element hat
+            if (Array.isArray(data) && data.length < 1) {
+                // Initialisierung ausführen, wenn keine Kategorien vorhanden sind
+                await initializeStandardData();
+            }
+        } else {
+            console.error("Fehler beim Abrufen der Initialisierungsdaten.");
+        }
+    } catch (error) {
+        console.error("Fehler bei der Anfrage:", error);
+    }
+}
+
+
+
+async function createStandardCategories() {
+    let standardCategories = [
+        { name: "Technical Tasks" },
+        { name: "User Story" }
+    ];
+
+    for (let category of standardCategories) {
+        let response = await fetch(BASE_URL + "categories/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(category)
+        });
+
+        if (!response.ok) {
+            console.error(`Fehler beim Erstellen der Kategorie: ${category.name}`);
+        }
+    }
+}
+
+async function createStandardTaskStatus() {
+    let standardTaskstatus = [
+        { name: "todo" },
+        { name: "inprogress" },
+        { name: "done" },
+        { name: "awaitfeedback" }
+    ];
+
+    for (let taskstatus of standardTaskstatus) {
+        let response = await fetch(BASE_URL + "taskstatus/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(taskstatus)
+        });
+
+        if (!response.ok) {
+            console.error(`Fehler beim Erstellen des Taskstatus: ${taskstatus.name}`);
+        }
+    }
+}
+
+async function createPriority() {
+    let standardPrio = [
+        { name: "urgent" },
+        { name: "medium" },
+        { name: "low" }
+    ];
+
+    for (let prio of standardPrio) {
+        let response = await fetch(BASE_URL + "priority/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(prio)
+        });
+
+        if (!response.ok) {
+            console.error(`Fehler beim Erstellen der Priorität: ${prio.name}`);
+        }
+    }
+}
