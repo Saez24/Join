@@ -2,6 +2,8 @@
 
 **Join** is a project management tool designed to visualize the status and responsibilities of tasks. It helps to keep track of projects and their progress, and clearly assigns tasks.
 
+---
+
 ## Installation
 
 ## Frontend
@@ -46,14 +48,14 @@
 
 ## Usage
 
-**Frontend**: The frontend is developed with HTML, CSS, and JavaScript (including index.html). It visualizes the tasks and their statuses. You can simply start and use it via the Live Server.
+**Frontend**: The frontend is developed with HTML, CSS, and JavaScript (including `index.html`). It visualizes the tasks and their statuses. You can simply start and use it via the Live Server.
 
-**Backend**: The backend is developed with Python and Django. It uses the Django REST Framework to provide the API. You can access the admin panel after creating the superuser via the admin/ path.
+**Backend**: The backend is developed with Python and Django. It uses the Django REST Framework to provide the API. You can access the admin panel after creating the superuser via the `admin/` path.
 
 ## Technologies
 
-**Frontend**: HTML5, CSS3, JavaScript
-**Backend**: Python, Django, Django REST Framework
+- **Frontend:** HTML5, CSS3, JavaScript
+- **Backend:** Python, Django, Django REST Framework
 
 ## Contribution
 
