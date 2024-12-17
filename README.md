@@ -4,7 +4,7 @@
 
 ---
 
-## Installation
+# Installation
 
 ## Frontend
 
