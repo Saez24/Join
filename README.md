@@ -1,62 +1,55 @@
-# Join - Projektmanagement-Tool
+# Join - Project Management Tool
 
-**Join** ist ein Projektmanagement-Tool, das dazu dient, den Status und die Verantwortlichkeiten von Aufgaben zu visualisieren. Es hilft dabei, den Überblick über Projekte und deren Fortschritt zu behalten und Aufgaben klar zuzuordnen.
-
----
+**Join** is a project management tool designed to visualize the status and responsibilities of tasks. It helps to keep track of projects and their progress, and clearly assigns tasks.
 
 ## Installation
 
-### Frontend
+## Frontend
 
-1. Klone das Repository:
-   ```bash
-   git clone https://github.com/Saez24/Join_Frontend
-   cd Join_Frontend
-   ```
-2. Öffne die `index.html`-Datei mit einem Live Server. (Du kannst den Live Server in Visual Studio Code oder einem anderen Editor verwenden.)
+1. Clone the repository:
 
-   **Hinweis:** Du musst keine weiteren Schritte für das Frontend durchführen.
+bash
+git clone https://github.com/Saez24/Join_Frontend
+cd Join_Frontend
 
-### Backend
+2. Open the index.html file with a Live Server. (You can use the Live Server in Visual Studio Code or another editor.)
 
-1. Klone das Repository:
+**Note**: No further steps are needed for the frontend.
 
-   ```bash
-   git clone https://github.com/Saez24/Join_Backend
-   cd Join_Backend
-   ```
+## Backend
 
-2. Installiere die Abhängigkeiten:
+1. Clone the repository:
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+bash
+git clone https://github.com/Saez24/Join_Backend
+cd Join_Backend
 
-3. Erstelle einen Superuser, um Zugriff auf den Admin-Bereich zu erhalten:
+2. Install the dependencies:
 
-   ```bash
-   python manage.py createsuperuser
-   ```
+bash
+pip install -r requirements.txt
 
-4. Starte den Server:
-   ```bash
-   python manage.py runserver
-   ```
+3. Create a superuser to access the admin panel:
 
----
+bash
+python manage.py createsuperuser
 
-## Verwendung
+4. Start the server:
 
-- **Frontend:** Das Frontend ist mit HTML, CSS und JavaScript (inkl. `index.html`) entwickelt. Es visualisiert die Aufgaben und deren Status. Du kannst es einfach über den Live Server starten und benutzen.
-- **Backend:** Das Backend wurde mit Python und Django entwickelt. Es nutzt das Django REST Framework zur Bereitstellung der API. Du kannst den Admin-Bereich nach der Erstellung des Superusers über den `admin/`-Pfad erreichen.
+bash
+python manage.py runserver
 
-## Technologien
+## Usage
 
-- **Frontend:** HTML5, CSS3, JavaScript
-- **Backend:** Python, Django, Django REST Framework
+**Frontend**: The frontend is developed with HTML, CSS, and JavaScript (including index.html). It visualizes the tasks and their statuses. You can simply start and use it via the Live Server.
 
----
+**Backend**: The backend is developed with Python and Django. It uses the Django REST Framework to provide the API. You can access the admin panel after creating the superuser via the admin/ path.
 
-## Beitrag
+## Technologies
 
-Wenn du zu diesem Projekt beitragen möchtest, erstelle einen Pull-Request und beschreibe die Änderungen, die du vorgenommen hast.
+**Frontend**: HTML5, CSS3, JavaScript
+**Backend**: Python, Django, Django REST Framework
+
+## Contribution
+
+If you would like to contribute to this project, please create a pull request and describe the changes you made.
