@@ -369,8 +369,6 @@ function generateRandomColor() {
  * @returns {Object} Formatted task details.
  */
 function formatTaskDetails(taskData, htmlContent, assignedNamesHTMLSeparated) {
-    console.log(taskData);
-
     const { prio, category, description, title, duedate } = taskData;
     const priorityImage = buttonImages[prio] || './assets/img/prio_media.png';
     const categoryColor = CategoryColors[category] || { background: '#000000', color: '#FFFFFF' };

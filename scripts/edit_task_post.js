@@ -60,8 +60,35 @@ function getCategoryInput() {
  * @returns {Array<Object>} The list of subtasks.
  */
 function getSubtasks() {
-    return [...document.querySelectorAll('#edit-addsubtasks .edit-subtask-title')].map(span => ({ name: span.innerText }));
+    // Hier nehmen wir an, dass du die Subtasks mit dem completed Status aus der getSubtasksData Funktion verwendest
+    let subtasks = [...document.querySelectorAll('#edit-addsubtasks .edit-subtask-title')].map(span => ({
+        name: span.innerText,
+        completed: span.getAttribute('data-completed') === 'true' // Hier setzen wir voraus, dass der completed Status in einem Attribut gespeichert ist
+    }));
+
+    return subtasks;
 };
+
+async function getSubtasksData(taskid) {
+    try {
+        let response = await fetch(`${BASE_URL}tasks/${taskid}/`);
+        let taskObject = await response.json();
+
+        // Nur die Subtasks mit name und completed Status extrahieren
+        if (taskObject.subtask && Array.isArray(taskObject.subtask)) {
+            let subtasksWithStatus = taskObject.subtask.map(subtask => ({
+                name: subtask.name,
+                completed: subtask.completed // Falls completed vorhanden ist
+            }));
+            return subtasksWithStatus;
+        } else {
+            return [];
+        }
+    } catch (error) {
+        console.error('Fehler beim Abrufen der Subtasks:', error);
+        return [];
+    }
+}
 
 /**
  * Determines the priority based on the active button.
@@ -88,7 +115,15 @@ function getPriority() {
  * @param {string} taskid - The ID of the task to update.
  */
 async function saveUpdatedTask(taskid) {
+    // Abrufen der Subtasks mit name und completed Status
+    let subtasksData = await getSubtasksData(taskid);
     let updatedData = getUpdatedTaskData();
+
+    // Die Subtasks-Daten mit dem erhaltenen completed Status kombinieren
+    updatedData.subtask = updatedData.subtask.map((subtask, index) => ({
+        ...subtask,
+        completed: subtasksData[index]?.completed // Wenn subtasksData verfügbar ist, den Status beibehalten
+    }));
 
     if (!editValidateTaskInputField(updatedData)) {
         return;
@@ -139,20 +174,24 @@ async function handleSaveButtonClicked() {
 async function deleteTask() {
     try {
         let taskid = getCurrentTaskId();
-        let response = await fetch(`${BASE_URL}tasks/${taskid}.json`, {
+        let response = await fetch(`${BASE_URL}tasks/${taskid}/`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
             },
+            body: JSON.stringify({ deleted: true })
         });
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        await response.json(); // Assuming the response body is needed
+        // Nur parsen, wenn es einen Inhalt gibt
+        if (response.headers.get("content-length") > 0) {
+            let data = await response.json();
+        }
 
-        hidePopup(); // Call closeDialog() within try block to ensure it executes
+        hidePopup();
         displayTasks();
     } catch (error) {
         console.error("Error deleting task:", error);

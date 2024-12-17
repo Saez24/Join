@@ -272,6 +272,7 @@ body {
     margin: 0;
     padding-top: 120px;
     gap: 20px;
+    padding-bottom: 40px;
 }
 
 .boardHeadlineActions {
@@ -372,6 +373,9 @@ body {
     align-items: center;
     margin: 0;
     gap: 26px;
+    position: absolute;
+    z-index: 1;
+    top: 220px;
 }
 
 .taskStatusTitle {
@@ -777,6 +781,7 @@ body {
         align-items: center;
         margin: 0;
         gap: 26px;
+        position: unset;
     }
 
     .tasks {
