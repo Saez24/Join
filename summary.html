@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <script src="./scripts/singnedinuser.js"></script>
     <script src="./scripts/templates.js"></script>
     <script src="./scripts/summary.js"></script>
 
@@ -14,9 +14,9 @@
     <link rel="icon" href="./assets/img/favicon.png" type="image/x-icon">
 </head>
 
-<body onload="initializeSummary()">
+<body onload="initializeSummary(), checkAuth()">
     <div id="sidebarContainer">
-        <script type="module" src="./scripts/singnedinuser.js"></script>
+
     </div>
     <div class="summary-cont">
         <div>
@@ -35,7 +35,7 @@
                             <img src="./assets/img/summary_pen_white.png" alt="pen-img" class="d-none summary-icons"
                                 id="penWhite">
                             <div class="d-flex j-center a-center f-column">
-                                <p class="f-size-64" id="summaryToDos">1</p>
+                                <p class="f-size-64" id="summaryToDos">0</p>
                                 <p class="f-size-20 ">To-do</p>
                             </div>
                         </div>
@@ -46,7 +46,7 @@
                             <img src="./assets/img/summary_checkmark_white.png" alt="checkmark-img"
                                 class="d-none summary-icons" id="checkmarkWhite">
                             <div class="d-flex j-center a-center f-column">
-                                <p class="f-size-64" id="summaryDone">1</p>
+                                <p class="f-size-64" id="summaryDone">0</p>
                                 <p class="f-size-20 ">Done</p>
                             </div>
                         </div>
@@ -54,14 +54,14 @@
                     <div class="middle-cont d-flex j-center a-center" onclick="location.href='board.html'">
                         <img src="./assets/img/summary_urgent.png" alt="urgent-img" class="summary-icons">
                         <div class="d-flex j-center a-center f-column">
-                            <p class="f-size-64" id="summaryUrgent">1</p>
+                            <p class="f-size-64" id="summaryUrgent">0</p>
                             <p class="f-size-16 ">Urgent</p>
                         </div>
                         <img src="./assets/img/summary_seperator_grey.png" alt="seperator-grey" class="seperator-grey">
                         <img src="./assets/img/summary_seperator_grey_responsive.png" alt="seperator-grey"
                             class="seperator-grey-responsive">
                         <div class="d-flex f-column gap-13">
-                            <p class="f-size-21" id="summaryDeadline">October 16, 2022</p>
+                            <p class="f-size-21" id="summaryDeadline"></p>
                             <p class="f-size-16" id="upcomingDeadline">Upcoming Deadline</p>
                         </div>
                     </div>
@@ -69,21 +69,21 @@
                         <div class="bottom-cont d-flex j-center a-center t-align-center"
                             onclick="location.href='board.html'">
                             <div class="d-flex j-center a-center f-column">
-                                <p class="f-size-64" id="summaryTasksInBoard">1</p>
+                                <p class="f-size-64" id="summaryTasksInBoard">0</p>
                                 <p class="f-size-20 ">Tasks in<br>Board</p>
                             </div>
                         </div>
                         <div class="bottom-cont d-flex j-center a-center tranform-origin-center"
                             onclick="location.href='board.html'">
                             <div class="d-flex j-center a-center f-column t-align-center">
-                                <p class="f-size-64" id="summaryTasksInProgress">1</p>
+                                <p class="f-size-64" id="summaryTasksInProgress">0</p>
                                 <p class="f-size-20 ">Tasks in<br>Progress</p>
                             </div>
                         </div>
                         <div class="bottom-cont d-flex j-center a-center t-align-center tranform-origin-right"
                             onclick="location.href='board.html'">
                             <div class="d-flex j-center a-center f-column">
-                                <p class="f-size-64" id="summaryAwaitingFeedback">1</p>
+                                <p class="f-size-64" id="summaryAwaitingFeedback">0</p>
                                 <p class="f-size-20 ">Awaiting<br>Feedback</p>
                             </div>
                         </div>

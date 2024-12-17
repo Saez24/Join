@@ -369,6 +369,8 @@ function generateRandomColor() {
  * @returns {Object} Formatted task details.
  */
 function formatTaskDetails(taskData, htmlContent, assignedNamesHTMLSeparated) {
+    console.log(taskData);
+
     const { prio, category, description, title, duedate } = taskData;
     const priorityImage = buttonImages[prio] || './assets/img/prio_media.png';
     const categoryColor = CategoryColors[category] || { background: '#000000', color: '#FFFFFF' };
@@ -415,16 +417,21 @@ function shouldCreateTaskElement(task, assignedNames, search) {
 
 
 function checkSearchInput(task, assignedNames, search) {
-    const searchLower = (search ?? '').toLowerCase().trim(); // Suchbegriff in Kleinbuchstaben und ohne führende/nachfolgende Leerzeichen
-    if (!searchLower) return false; // Wenn der Suchbegriff leer ist, nichts suchen
+    const searchLower = (search ?? '').toLowerCase().trim();
+    if (!searchLower) return false;
 
-    // Überprüfe die Felder des Tasks
     return (
-        (assignedNames?.toLowerCase() ?? '').includes(searchLower) ||
+        (Array.isArray(assignedNames)
+            ? assignedNames.some(name => name.toLowerCase().includes(searchLower))
+            : typeof assignedNames === 'string'
+                ? assignedNames.toLowerCase().includes(searchLower)
+                : false
+        ) ||
         (task.description?.toLowerCase() ?? '').includes(searchLower) ||
         (task.title?.toLowerCase() ?? '').includes(searchLower)
     );
 }
+
 
 
 function addEmptyMessage(container, text) {

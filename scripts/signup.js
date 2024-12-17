@@ -286,8 +286,13 @@ async function checkInitialization() {
 
 async function createStandardCategories() {
     let standardCategories = [
-        { name: "Technical Tasks" },
-        { name: "User Story" }
+        { name: "Finance" },
+        { name: "IT" },
+        { name: "Sales" },
+        { name: "HR" },
+        { name: "Marketing" },
+        { name: "Operations" },
+        { name: "Product" }
     ];
 
     for (let category of standardCategories) {

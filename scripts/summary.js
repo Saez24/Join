@@ -34,6 +34,7 @@ async function loadData(path = "tasks") {
 
         const data = await response.json();
 
+
         // Prüfen, ob die API-Daten ein Array sind
         if (Array.isArray(data)) {
             return data; // Direkt zurückgeben, da die API-Daten schon ein Array sind
@@ -228,7 +229,6 @@ function renderSummary() {
     document.getElementById('summaryTasksInBoard').innerHTML = amountTasksInBoard;
     document.getElementById('summaryTasksInProgress').innerHTML = amountTasksInProgress;
     document.getElementById('summaryAwaitingFeedback').innerHTML = amountTasksAwaitingFeedback;
-
 }
 
 

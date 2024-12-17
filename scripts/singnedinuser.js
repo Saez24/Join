@@ -39,8 +39,8 @@ async function checkAuth() {
     }
 }
 
-// Authentifizierungsstatus beim Laden der Seite prüfen
-window.onload = checkAuth;
+// // Authentifizierungsstatus beim Laden der Seite prüfen
+// window.onload = checkAuth;
 
 /**
  * Renders the user's name in the DOM.
@@ -75,7 +75,7 @@ function generateNameUserblock(user) {
     }
 
     return /*html*/ `
-        <button class="shortname"><h4 id="fullname" style="display: none;">${user || 'Guest'}</h4><h2>${firstInitial}${lastInitial}</h2></button>
+        <button class="shortname"><h4 id="fullname" style="display: none;">${name || 'Guest'}</h4><h2>${firstInitial}${lastInitial}</h2></button>
     `;
 }
 

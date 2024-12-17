@@ -1,4 +1,6 @@
 window.onload = () => getNames();
+// // Authentifizierungsstatus beim Laden der Seite prüfen
+
 const BASE_URL = "http://127.0.0.1:8000/api/"
 let currentTaskId = null;
 let names
@@ -7,7 +9,6 @@ let id = 0;
 let subtaskCounter = 0;
 let counter = 0;
 let activeButton = null;
-
 let buttonImages = {
     urgent: './assets/img/prio_alta.png',
     medium: './assets/img/prio_media.png',

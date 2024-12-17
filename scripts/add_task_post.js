@@ -110,20 +110,17 @@ function getAssignedTo() {
 
     assignedToCheckboxes.forEach((checkbox) => {
         let idParts = checkbox.id.split('_');
-        console.log(idParts);
-
 
         if (idParts.length >= 3) {
             let nameSpan = document.getElementById(`assignname_${idParts[1]}_${idParts.slice(2).join('_')}`);
-            console.log(nameSpan);
+
 
             if (nameSpan) {
                 assignedTo.push(nameSpan.innerText.trim());
-                console.log(assignedTo);
 
             }
         } else if (idParts.length === 2) {
-            console.log(idParts);
+
 
             // let nameSpan = document.getElementById(`assignname_${idParts[1]}`);
             // console.log(nameSpan);
