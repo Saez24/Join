@@ -8,9 +8,10 @@
 
 1. Clone the repository:
 
-   bash
+   ```bash
    git clone https://github.com/Saez24/Join_Frontend
    cd Join_Frontend
+   ```
 
 2. Open the index.html file with a Live Server. (You can use the Live Server in Visual Studio Code or another editor.)
 
@@ -20,24 +21,28 @@
 
 1. Clone the repository:
 
-   bash
+   ```bash
    git clone https://github.com/Saez24/Join_Backend
    cd Join_Backend
+   ```
 
 2. Install the dependencies:
 
-   bash
+   ```bash
    pip install -r requirements.txt
+   ```
 
 3. Create a superuser to access the admin panel:
 
-   bash
+   ```bash
    python manage.py createsuperuser
+   ```
 
 4. Start the server:
 
-   bash
+   ```bash
    python manage.py runserver
+   ```
 
 ## Usage
 
