@@ -14,7 +14,7 @@ async function editAddTaskLoadNames() {
         if (data && data.names && categories && categories.categories) {
             const sortedKeys = data.names.map(n => n.id).sort();
             editRenderAddTaskNames(sortedKeys, data.names, task.assignto);
-            editRenderAddTaskCategories(categories.categories);
+            editRenderAddTaskCategories(categories.categories, task.category);
             const assignedNames = getAssignedToNames(data.names);
             const currentTask = renderCurrentTask(task.assignto)
             const assignedNamesToCheckbox = editLoadSelectedAssignTo(task.assignto)
@@ -220,6 +220,7 @@ function editLoadSelectedAssignTo() {
     let count = 0;
 
     checkboxes.forEach((checkbox, index) => {
+
         if (checkbox.checked) {
             count++;
             if (count <= 3) {
@@ -322,76 +323,75 @@ function editAddMoreButton(count, position) {
  * Renders categories for adding a new task to the DOM.
  * @param {Object} categories - An object containing categories.
  */
-function editRenderAddTaskCategories(categories) {
+function editRenderAddTaskCategories(categories, taskcategory) {
     let categoryContainer = document.getElementById("edit-taskcategory");
-    categoryContainer.innerHTML = '';
+    let content = '';
 
     for (let categoryKey in categories) {
         if (categories.hasOwnProperty(categoryKey)) {
             let category = categories[categoryKey];
             let categoryId = categoryKey;
-            categoryContainer.innerHTML += /*html*/ `
-            <div class="dropdown_selection" onclick="editDropdownSelectCategory(this)">
+            let isChecked = taskcategory === category.name ? 'checked' : '';
+            let selectedClass = isChecked ? 'selected_dropdown' : '';
+
+            content += /*html*/ `
+            <div class="dropdown_selection ${selectedClass}" data-category="${categoryId}">
                 <label class="label" id="${categoryId}">${category.name}
-                <input class="checkbox" type="checkbox" id="edit-category_${categoryId}"></label>
+                <input class="checkbox" type="checkbox" id="edit-category_${categoryId}" ${isChecked}>
+                </label>
             </div>
             `;
         }
     }
-};
 
-/**
- * Toggles the "selected_dropdown" class on the given element and toggles the associated checkbox state.
- * Ensures that only one checkbox within the "taskcategory" container can be selected at a time.
- * If the element is within the "taskcategory" container, it updates the checkbox state and loads the selected category into the input field.
- * 
- * @param {HTMLElement} element - The dropdown element that was clicked.
- */
-function editDropdownSelectCategory(element) {
-    if (element.closest("#edit-taskcategory")) {
-        let categoryContainer = document.getElementById("edit-taskcategory");
-        let checkboxes = categoryContainer.querySelectorAll(".checkbox");
-        let clickedCheckbox = element.querySelector(".checkbox");
-        let isChecked = clickedCheckbox.checked;
+    categoryContainer.innerHTML = content;
 
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = false;
-            checkbox.closest(".dropdown_selection").classList.remove("selected_dropdown");
-            editCloseSelectCategory();
-        });
+    categoryContainer.addEventListener('click', event => {
+        let element = event.target.closest(".dropdown_selection");
+        if (element) editDropdownSelectCategory(element, categories[element.dataset.category].name);
+    });
+}
 
-        clickedCheckbox.checked = !isChecked;
-        if (clickedCheckbox.checked) {
-            element.classList.add("selected_dropdown");
-        } else {
-            element.classList.remove("selected_dropdown");
-        }
+function editDropdownSelectCategory(element, categories) {
+    let categoryContainer = document.getElementById("edit-taskcategory");
+    let checkboxes = categoryContainer.querySelectorAll(".checkbox");
+    let clickedCheckbox = element.querySelector(".checkbox");
 
-        editLoadToCategoryInput();
-    }
-};
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+        checkbox.closest(".dropdown_selection").classList.remove("selected_dropdown");
+    });
+
+    clickedCheckbox.checked = true;
+    element.classList.add("selected_dropdown");
+
+    editLoadToCategoryInput(categories);
+}
+
 
 /**
  * Loads the selected category into the category input field.
  * This function finds the checked checkbox in the taskcategory container and updates
  * the taskcategory input field with the corresponding category label.
  */
-function editLoadToCategoryInput() {
+function editLoadToCategoryInput(categories) {
     let categoryContainer = document.getElementById("edit-taskcategory");
     let categoryInput = document.getElementById("edit-taskcategoryinput");
+    let categoryValue = categories;
     let checkboxes = categoryContainer.querySelectorAll(".checkbox");
 
     categoryInput.value = '';
 
-    for (let checkbox of checkboxes) {
+    checkboxes.forEach((checkbox, index) => {
         if (checkbox.checked) {
             let labelElement = checkbox.closest(".dropdown_selection").querySelector(".label");
             if (labelElement) {
-                categoryInput.value = labelElement.innerText;
+                categoryInput.value = labelElement.innerText.trim();
             }
-            break;
+
         }
     }
+    )
 };
 
 /**
