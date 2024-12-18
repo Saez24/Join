@@ -34,6 +34,14 @@
    pip install -r requirements.txt
    ```
 
+   ```bash
+   pip python manage.py makemigrations
+   ```
+
+   ```bash
+   pip python manage.py migrate
+   ```
+
 3. Create a superuser to access the admin panel:
 
    ```bash
